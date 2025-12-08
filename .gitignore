@@ -29,3 +29,8 @@ log-*.txt
 .vscode
 .idea
 .DS_Store
+
+
+%APPDATA%/npm/
+node_modules/
+.npm/
