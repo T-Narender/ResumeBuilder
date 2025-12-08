@@ -14,13 +14,22 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 30001;
 
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
 
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production'
-        ? ['https://airesumebuilder-eight.vercel.app']
-        : ['http://localhost:5173', 'http://localhost:3000'],
-    credentials: true
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // allow non-browser clients
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.options('*', cors());
 // Connect to database
 connectDB();
 
@@ -35,7 +44,11 @@ app.use(
     '/uploads',
     express.static(path.join(__dirname, '/uploads'), {
         setHeaders: (res, _path) => {
-            res.set('Access-Control-Allow-Origin', 'http://localhost:5173');
+            const origin = res.req?.headers?.origin;
+            if (origin && allowedOrigins.includes(origin)) {
+                res.set('Access-Control-Allow-Origin', origin);
+                res.set('Vary', 'Origin');
+            }
         }
     })
 );
