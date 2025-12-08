@@ -14,16 +14,20 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 30001;
 
-const allowedOrigins =
-    process.env.NODE_ENV === "production"
+const envOrigins = (process.env.CORS_ORIGIN || "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+const allowedOrigins = [
+    ...(process.env.NODE_ENV === "production"
         ? [
             "https://ai-resumebuilder-git-main-t-narenders-projects.vercel.app", // Vercel preview URL
-            "https://airesumebuilder-eight.vercel.app", // (if you later use this as main prod)
+            "https://airesumebuilder-eight.vercel.app", // main prod
         ]
-        : [
-            "http://localhost:5173",
-            "http://localhost:3000",
-        ];
+        : ["http://localhost:5173", "http://localhost:3000"]),
+    ...envOrigins,
+];
 
 app.use(
     cors({
@@ -35,7 +39,7 @@ app.use(
                 return callback(null, true);
             }
 
-            console.log("Blocked by CORS:", origin);
+            console.log("Blocked by CORS:", origin, "Allowed:", allowedOrigins);
             return callback(new Error("Not allowed by CORS"));
         },
         credentials: true,
