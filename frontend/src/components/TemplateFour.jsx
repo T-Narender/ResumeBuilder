@@ -18,6 +18,15 @@ const TemplateFour = ({ resumeData = {}, containerWidth }) => {
     interests = [],
   } = resumeData;
 
+  // Filter out empty work experience entries
+  const filteredWorkExperience = Array.isArray(workExperience)
+    ? workExperience.filter(
+        (exp) =>
+          exp &&
+          (exp.company?.trim() || exp.role?.trim() || exp.description?.trim())
+      )
+    : [];
+
   const resumeRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(800);
   const [scale, setScale] = useState(1);
@@ -66,17 +75,17 @@ const TemplateFour = ({ resumeData = {}, containerWidth }) => {
           )}
           {contactInfo.linkedin && (
             <a href={contactInfo.linkedin} className="hover:underline">
-              LinkedIn
+              🔗 LinkedIn
             </a>
           )}
           {contactInfo.github && (
             <a href={contactInfo.github} className="hover:underline">
-              GitHub
+              💻 GitHub
             </a>
           )}
           {contactInfo.website && (
             <a href={contactInfo.website} className="hover:underline">
-              Portfolio
+              🌐 Portfolio
             </a>
           )}
         </div>
@@ -142,10 +151,10 @@ const TemplateFour = ({ resumeData = {}, containerWidth }) => {
       )}
 
       {/* Experience */}
-      {workExperience.length > 0 && (
+      {filteredWorkExperience.length > 0 && (
         <section className="mb-4">
           <h2 className={sectionTitleClass}>Work Experience</h2>
-          {workExperience.map((exp, idx) => (
+          {filteredWorkExperience.map((exp, idx) => (
             <div key={idx} className="mb-3">
               <div className="flex justify-between text-sm font-semibold">
                 <span className="text-left" dir="ltr">

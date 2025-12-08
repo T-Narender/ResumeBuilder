@@ -93,15 +93,7 @@ const EditResume = () => {
       github: "",
       website: "",
     },
-    workExperience: [
-      {
-        company: "",
-        role: "",
-        startDate: "",
-        endDate: "",
-        description: "",
-      },
-    ],
+    workExperience: [],
     education: [
       {
         degree: "",
@@ -451,18 +443,31 @@ const EditResume = () => {
         break;
 
       case "work-experience":
-        resumeData.workExperience.forEach(
-          ({ company, role, startDate, endDate }, index) => {
-            if (!company || !company.trim())
-              errors.push(`Company is required in experience ${index + 1}`);
-            if (!role || !role.trim())
-              errors.push(`Role is required in experience ${index + 1}`);
-            if (!startDate || !endDate)
-              errors.push(
-                `Start and End dates are required in experience ${index + 1}`
-              );
-          }
-        );
+        // Work experience is now optional - only validate if entries with content exist
+        if (resumeData.workExperience && resumeData.workExperience.length > 0) {
+          // Filter out completely empty entries before validation
+          const filledExperiences = resumeData.workExperience.filter(
+            (exp) =>
+              exp.company?.trim() ||
+              exp.role?.trim() ||
+              exp.startDate ||
+              exp.endDate ||
+              exp.description?.trim()
+          );
+
+          filledExperiences.forEach(
+            ({ company, role, startDate, endDate }, index) => {
+              if (!company || !company.trim())
+                errors.push(`Company is required in experience ${index + 1}`);
+              if (!role || !role.trim())
+                errors.push(`Role is required in experience ${index + 1}`);
+              if (!startDate || !endDate)
+                errors.push(
+                  `Start and End dates are required in experience ${index + 1}`
+                );
+            }
+          );
+        }
         break;
 
       case "education-info":
@@ -766,8 +771,7 @@ const EditResume = () => {
           template: resumeInfo?.template || prevState?.template,
           profileInfo: resumeInfo?.profileInfo || prevState?.profileInfo,
           contactInfo: resumeInfo?.contactInfo || prevState?.contactInfo,
-          workExperience:
-            resumeInfo?.workExperience || prevState?.workExperience,
+          workExperience: resumeInfo?.workExperience || [],
           education: resumeInfo?.education || prevState?.education,
           skills: resumeInfo?.skills || prevState?.skills,
           projects: resumeInfo?.projects || prevState?.projects,

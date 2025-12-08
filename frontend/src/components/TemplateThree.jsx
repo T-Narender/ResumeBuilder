@@ -13,6 +13,15 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
     interests = [],
   } = resumeData;
 
+  // Filter out empty work experience entries
+  const filteredWorkExperience = Array.isArray(workExperience)
+    ? workExperience.filter(
+        (exp) =>
+          exp &&
+          (exp.company?.trim() || exp.role?.trim() || exp.description?.trim())
+      )
+    : [];
+
   const resumeRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(1100);
   const [scale, setScale] = useState(1);
@@ -113,37 +122,34 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
               </li>
               {contactInfo.linkedin && (
                 <li className="flex items-start ">
-                  <span className="font-semibold min-w-[65px]">LinkedIn:</span>
                   <a
                     href={contactInfo.linkedin}
                     className="text-blue-600 hover:underline truncate pb-1"
                     title={contactInfo.linkedin}
                   >
-                    linkedin.com/in/{contactInfo.linkedin.split("/").pop()}
+                    🔗 LinkedIn
                   </a>
                 </li>
               )}
               {contactInfo.github && (
                 <li className="flex items-start">
-                  <span className="font-semibold min-w-[65px] ">GitHub:</span>
                   <a
                     href={contactInfo.github}
                     className="text-blue-600 hover:underline pb-2 truncate"
                     title={contactInfo.github}
                   >
-                    github.com/{contactInfo.github.split("/").pop()}
+                    💻 GitHub
                   </a>
                 </li>
               )}
               {contactInfo.website && (
                 <li className="flex items-start">
-                  <span className="font-semibold min-w-[65px]">Portfolio:</span>
                   <a
                     href={contactInfo.website}
                     className="text-blue-600 hover:underline pb-2 truncate"
                     title={contactInfo.website}
                   >
-                    {contactInfo.website.replace(/(^\w+:|^)\/\//, "")}
+                    🌐 Portfolio
                   </a>
                 </li>
               )}
@@ -227,13 +233,13 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
         {/* MAIN CONTENT - 7 columns */}
         <main className="col-span-7 space-y-5 pl-4">
           {/* Work Experience */}
-          {workExperience.length > 0 && (
+          {filteredWorkExperience.length > 0 && (
             <section>
               <h2 className="text-sm font-bold uppercase text-gray-800 mb-3 tracking-wider border-b border-gray-400 pb-1">
                 WORK EXPERIENCE
               </h2>
               <div className="space-y-5">
-                {workExperience.map((exp, idx) => (
+                {filteredWorkExperience.map((exp, idx) => (
                   <div key={idx} className="text-xs">
                     <div className="flex justify-between items-start mb-1">
                       <div>

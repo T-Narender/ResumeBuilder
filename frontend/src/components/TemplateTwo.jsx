@@ -19,6 +19,15 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
     interests = [],
   } = resumeData;
 
+  // Filter out empty work experience entries
+  const filteredWorkExperience = Array.isArray(workExperience)
+    ? workExperience.filter(
+        (exp) =>
+          exp &&
+          (exp.company?.trim() || exp.role?.trim() || exp.description?.trim())
+      )
+    : [];
+
   const resumeRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(800);
   const [scale, setScale] = useState(1);
@@ -76,7 +85,7 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
               href={contactInfo.linkedin}
               className="hover:underline text-blue-600"
             >
-              LinkedIn
+              🔗 LinkedIn
             </a>
           )}
           {contactInfo.github && (
@@ -84,7 +93,7 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
               href={contactInfo.github}
               className="hover:underline text-blue-600"
             >
-              GitHub
+              💻 GitHub
             </a>
           )}
           {contactInfo.website && (
@@ -92,7 +101,7 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
               href={contactInfo.website}
               className="hover:underline text-blue-600"
             >
-              Portfolio
+              🌐 Portfolio
             </a>
           )}
         </div>
@@ -114,11 +123,11 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
       )}
 
       {/* Experience */}
-      {workExperience.length > 0 && (
+      {filteredWorkExperience.length > 0 && (
         <section className="mb-2">
           <h2 className={sectionTitleClass}>Experience</h2>
           <div className="space-y-2">
-            {workExperience.map((exp, idx) => (
+            {filteredWorkExperience.map((exp, idx) => (
               <div key={idx} className="space-y-0.5">
                 <div className="flex justify-between items-start">
                   <div className="text-left" dir="ltr">

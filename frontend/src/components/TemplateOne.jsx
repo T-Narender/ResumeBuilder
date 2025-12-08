@@ -36,6 +36,15 @@ const TemplateOne = ({ resumeData = {}, colorPalette, containerWidth }) => {
     interests = [],
   } = resumeData;
 
+  // Filter out empty work experience entries
+  const filteredWorkExperience = Array.isArray(workExperience)
+    ? workExperience.filter(
+        (exp) =>
+          exp &&
+          (exp.company?.trim() || exp.role?.trim() || exp.description?.trim())
+      )
+    : [];
+
   const resumeRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(800);
   const [scale, setScale] = useState(1);
@@ -64,112 +73,96 @@ const TemplateOne = ({ resumeData = {}, colorPalette, containerWidth }) => {
         }}
       >
         {/* Header */}
-        <div className="resume-section flex justify-between items-start mb-6">
-          <div>
+        <div className="resume-section mb-6">
+          <div className="mb-2">
             <h1 className="text-4xl font-bold text-left" dir="ltr">
               {profileInfo?.fullName || "Your Name"}
             </h1>
 
-            <h2 className="text-xl text-left" dir="ltr">
+            <h2 className="text-xl text-gray-600 text-left" dir="ltr">
               {profileInfo?.designation || "Your Title"}
             </h2>
-
-            <div className="flex flex-wrap gap-3 text-sm">
-              {contactInfo.email && (
-                <div className="flex items-center">
-                  <LuMail className="mr-1" />
-                  <a
-                    href={`mailto:${contactInfo.email}`}
-                    className="hover:underline"
-                  >
-                    {contactInfo.email}
-                  </a>
-                </div>
-              )}
-              {contactInfo.phone && (
-                <div className="flex items-center">
-                  <LuPhone className="mr-1" />
-                  <a
-                    href={`tel:${contactInfo.phone}`}
-                    className="hover:underline"
-                  >
-                    {contactInfo.phone}
-                  </a>
-                </div>
-              )}
-              {contactInfo.location && (
-                <div className="flex items-center">
-                  <span>{contactInfo.location}</span>
-                </div>
-              )}
-            </div>
           </div>
-          <div className="flex flex-col items-end text-sm">
-            {contactInfo.linkedin && (
-              <div className="flex items-center mb-1">
-                <RiLinkedinLine className="mr-1" />
+
+          <div className="flex flex-wrap gap-2 text-sm mb-3">
+            {contactInfo.email && (
+              <span>
                 <a
-                  href={contactInfo.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
+                  href={`mailto:${contactInfo.email}`}
+                  className="hover:underline text-blue-600"
                 >
-                  LinkedIn
+                  {contactInfo.email}
                 </a>
-              </div>
+              </span>
+            )}
+            {contactInfo.phone && (
+              <span>
+                <a
+                  href={`tel:${contactInfo.phone}`}
+                  className="hover:underline text-blue-600"
+                >
+                  📞 {contactInfo.phone}
+                </a>
+              </span>
+            )}
+            {contactInfo.location && <span>📍 {contactInfo.location}</span>}
+          </div>
+
+          <div className="flex flex-wrap gap-3 text-sm">
+            {contactInfo.linkedin && (
+              <a
+                href={contactInfo.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline text-blue-600"
+              >
+                🔗 LinkedIn
+              </a>
             )}
             {contactInfo.github && (
-              <div className="flex items-center mb-1">
-                <LuGithub className="mr-1" />
-                <a
-                  href={contactInfo.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
-                >
-                  GitHub
-                </a>
-              </div>
+              <a
+                href={contactInfo.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline text-blue-600"
+              >
+                💻 GitHub
+              </a>
             )}
             {contactInfo.website && (
-              <div className="flex items-center">
-                <LuGlobe className="mr-1" />
-                <a
-                  href={contactInfo.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
-                >
-                  Portfolio
-                </a>
-              </div>
+              <a
+                href={contactInfo.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline text-blue-600"
+              >
+                🌐 Portfolio
+              </a>
             )}
           </div>
         </div>
 
         {/* Professional Summary */}
         {profileInfo.summary && (
-          <div className="resume-section mb-3">
+          <div className="resume-section mb-4">
             <Title text="Professional Summary" />
-            <textarea
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-800 font-medium bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-300 transition text-left"
+            <p
+              className="text-sm text-gray-700 leading-relaxed text-left"
               dir="ltr"
-              rows={4}
-              placeholder="Short introduction about yourself"
-              value={profileInfo.summary || ""}
-              onChange={({ target }) => updateSection("summary", target.value)}
-            />
+            >
+              {profileInfo.summary}
+            </p>
           </div>
         )}
 
         <div className="grid grid-cols-3 gap-8">
           {/* Left Column */}
           <div className="col-span-2 space-y-4">
-            {workExperience.length > 0 && (
+            {filteredWorkExperience.length > 0 && (
               <div className="resume-section">
                 <Title text="Work Experience" />
                 <div className="space-y-6">
-                  {workExperience.map((exp, i) => (
+                  {filteredWorkExperience.map((exp, i) => (
                     <WorkExperience
                       key={i}
                       company={exp.company}
