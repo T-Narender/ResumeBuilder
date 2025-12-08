@@ -14,21 +14,33 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 30001;
 
-const allowedOrigins = (process.env.CORS_ORIGIN || '')
-    .split(',')
-    .map(o => o.trim())
-    .filter(Boolean);
+const allowedOrigins =
+    process.env.NODE_ENV === "production"
+        ? [
+            "https://ai-resumebuilder-git-main-t-narenders-projects.vercel.app", // Vercel preview URL
+            "https://airesumebuilder-eight.vercel.app", // (if you later use this as main prod)
+        ]
+        : [
+            "http://localhost:5173",
+            "http://localhost:3000",
+        ];
 
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // allow non-browser clients
-        if (allowedOrigins.includes(origin)) return callback(null, true);
-        return callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(
+    cors({
+        origin(origin, callback) {
+            // Allow non-browser tools like Postman (no Origin header)
+            if (!origin) return callback(null, true);
+
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            console.log("Blocked by CORS:", origin);
+            return callback(new Error("Not allowed by CORS"));
+        },
+        credentials: true,
+    })
+);
 // Connect to database
 connectDB();
 
