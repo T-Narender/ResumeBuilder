@@ -105,6 +105,7 @@ const EditResume = () => {
     skills: [
       {
         name: "",
+        category: "Programming Languages",
         progress: 0,
       },
     ],
@@ -765,6 +766,13 @@ const EditResume = () => {
       if (response.data && response.data.profileInfo) {
         const resumeInfo = response.data;
 
+        const normalizedSkills = Array.isArray(resumeInfo?.skills)
+          ? resumeInfo.skills.map((s) => ({
+              ...s,
+              category: s?.category || "Other Tools",
+            }))
+          : prevState?.skills;
+
         setResumeData((prevState) => ({
           ...prevState,
           title: resumeInfo?.title || "Untitled",
@@ -773,7 +781,7 @@ const EditResume = () => {
           contactInfo: resumeInfo?.contactInfo || prevState?.contactInfo,
           workExperience: resumeInfo?.workExperience || [],
           education: resumeInfo?.education || prevState?.education,
-          skills: resumeInfo?.skills || prevState?.skills,
+          skills: normalizedSkills,
           projects: resumeInfo?.projects || prevState?.projects,
           certifications:
             resumeInfo?.certifications || prevState?.certifications,

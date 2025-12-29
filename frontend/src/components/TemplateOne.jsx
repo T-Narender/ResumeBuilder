@@ -9,17 +9,67 @@ import {
 } from "./ResumeSection";
 import { formatYearMonth } from "../utils/helper";
 
+const categorizeSkill = (name = "") => {
+  const n = name.toLowerCase();
+  if (
+    [
+      "javascript",
+      "typescript",
+      "java",
+      "python",
+      "c++",
+      "c#",
+      "go",
+      "ruby",
+    ].some((k) => n.includes(k))
+  )
+    return "Programming Languages";
+  if (
+    [
+      "react",
+      "next",
+      "angular",
+      "vue",
+      "svelte",
+      "tailwind",
+      "css",
+      "html",
+      "bootstrap",
+    ].some((k) => n.includes(k))
+  )
+    return "Frontend Technologies";
+  if (
+    [
+      "node",
+      "express",
+      "django",
+      "spring",
+      "fastapi",
+      "flask",
+      "nest",
+      "mongodb",
+      "postgres",
+      "mysql",
+    ].some((k) => n.includes(k))
+  )
+    return "Backend Technologies";
+  return "Other Tools";
+};
+
 const DEFAULT_THEME = ["#ffffff", "#0d47a1", "#1e88e5", "#64b5f6", "#bbdefb"];
 
 const Title = ({ text, color }) => (
-  <div className="relative w-fit mb-2 resume-section-title">
+  <div className="relative w-fit mt-2 mb-3 resume-section-title">
     <h2
       className="relative text-base font-bold uppercase tracking-wide pb-2"
       style={{ color }}
     >
       {text}
     </h2>
-    <div className="w-full h-[2px] mt-1" style={{ backgroundColor: color }} />
+    <div
+      className="w-full h-[2px] mt-1 mb-1"
+      style={{ backgroundColor: color }}
+    />
   </div>
 );
 
@@ -35,6 +85,22 @@ const TemplateOne = ({ resumeData = {}, colorPalette, containerWidth }) => {
     certifications = [],
     interests = [],
   } = resumeData;
+
+  const skillGroups = {
+    "Programming Languages": [],
+    "Frontend Technologies": [],
+    "Backend Technologies": [],
+    "Other Tools": [],
+  };
+
+  skills.forEach((skill) => {
+    const category = skill?.category || categorizeSkill(skill?.name);
+    if (skillGroups[category]) {
+      skillGroups[category].push(skill.name);
+    } else {
+      skillGroups["Other Tools"].push(skill.name);
+    }
+  });
 
   // Filter out empty work experience entries
   const filteredWorkExperience = Array.isArray(workExperience)
@@ -203,16 +269,28 @@ const TemplateOne = ({ resumeData = {}, colorPalette, containerWidth }) => {
             {skills.length > 0 && (
               <div className="resume-section">
                 <Title text="Skills" />
-                <div className="flex flex-wrap gap-2">
-                  {skills.map((skill, i) => (
-                    <span
-                      key={i}
-                      className="text-xs font-medium px-2 py-1 rounded"
-                      style={{ backgroundColor: [4] }}
-                    >
-                      {skill.name}
-                    </span>
-                  ))}
+                <div className="space-y-2">
+                  {Object.entries(skillGroups).map(
+                    ([category, items]) =>
+                      items.length > 0 && (
+                        <div key={category}>
+                          <p className="text-xs font-semibold text-gray-700 mb-1">
+                            {category}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {items.map((name, i) => (
+                              <span
+                                key={`${category}-${i}`}
+                                className="text-xs font-medium px-2 py-1 rounded"
+                                style={{ backgroundColor: [4] }}
+                              >
+                                {name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                  )}
                 </div>
               </div>
             )}

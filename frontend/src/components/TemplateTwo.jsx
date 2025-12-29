@@ -4,7 +4,7 @@ import { LuExternalLink, LuGithub } from "react-icons/lu";
 import { formatYearMonth } from "../utils/helper";
 
 const sectionTitleClass =
-  "text-base font-bold uppercase tracking-wide mb-1 pb-1 border-b border-gray-300 text-left";
+  "text-base font-bold uppercase tracking-wide mt-2 mb-3 pt-1 pb-2 border-b border-gray-300 text-left";
 
 const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
   const {
@@ -18,6 +18,22 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
     certifications = [],
     interests = [],
   } = resumeData;
+
+  const skillGroups = {
+    "Programming Languages": [],
+    "Frontend Technologies": [],
+    "Backend Technologies": [],
+    "Other Tools": [],
+  };
+
+  skills.forEach((skill) => {
+    const category = skill?.category || "Other Tools";
+    if (skillGroups[category]) {
+      skillGroups[category].push(skill.name);
+    } else {
+      skillGroups["Other Tools"].push(skill.name);
+    }
+  });
 
   // Filter out empty work experience entries
   const filteredWorkExperience = Array.isArray(workExperience)
@@ -210,7 +226,13 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
                   className="text-[11px] pb-2 text-gray-700 text-left"
                   dir="ltr"
                 >
-                  {proj.description}
+                  <div className="space-y-0.5">
+                    {proj.description?.split("\n").map((line, i) => (
+                      <p key={i} className="text-sm">
+                        {line.trim() && `• ${line.trim()}`}
+                      </p>
+                    ))}
+                  </div>
                 </p>
                 <div className="flex gap-1 mt-0.5 pt-2 text-[11px]">
                   {proj.github && (
@@ -276,13 +298,28 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
       {skills.length > 0 && (
         <section className="mb-2">
           <h2 className={sectionTitleClass}>Skills</h2>
-          <ul className="text-[11px] text-gray-800 flex flex-wrap gap-1">
-            {skills.map((skill, idx) => (
-              <li key={idx} className="w-fit text-left" dir="ltr">
-                {skill.name}
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-2">
+            {Object.entries(skillGroups).map(
+              ([category, items]) =>
+                items.length > 0 && (
+                  <div key={category}>
+                    <p className="text-xs font-semibold text-gray-700 mb-1">
+                      {category}
+                    </p>
+                    <div className="flex flex-wrap gap-2 text-sm">
+                      {items.map((name, idx) => (
+                        <span
+                          key={`${category}-${idx}`}
+                          className="bg-gray-100 px-2 py-1 rounded text-left"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+            )}
+          </div>
         </section>
       )}
 
@@ -342,5 +379,4 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
     </div>
   );
 };
-
 export default TemplateTwo;

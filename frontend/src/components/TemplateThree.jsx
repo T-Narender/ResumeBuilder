@@ -38,25 +38,18 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
 
   // Group skills by category
   const groupedSkills = {
-    "Automation & Test tools": [],
-    "Product Management": [],
-    Languages: [],
-    "Other Skills": [],
+    "Programming Languages": [],
+    "Frontend Technologies": [],
+    "Backend Technologies": [],
+    "Other Tools": [],
   };
 
   skills.forEach((skill) => {
-    if (["Selenium/Webdriver", "TestNG", "Jenkins"].includes(skill.name)) {
-      groupedSkills["Automation & Test tools"].push(skill.name);
-    } else if (
-      ["Agile", "Scrum", "JIRA", "Microsoft TFS"].includes(skill.name)
-    ) {
-      groupedSkills["Product Management"].push(skill.name);
-    } else if (
-      ["Python", "Java", "Javascript", "Databases (MySQL)"].includes(skill.name)
-    ) {
-      groupedSkills.Languages.push(skill.name);
+    const category = skill?.category || "Other Tools";
+    if (groupedSkills[category]) {
+      groupedSkills[category].push(skill.name);
     } else {
-      groupedSkills["Other Skills"].push(skill.name);
+      groupedSkills["Other Tools"].push(skill.name);
     }
   });
 
@@ -99,7 +92,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
         <aside className="col-span-5 space-y-5 pr-4 border-r border-gray-300">
           {/* Contact */}
           <section>
-            <h2 className="text-sm font-bold uppercase text-gray-800 mb-2 tracking-wider">
+            <h2 className="text-sm font-bold uppercase text-gray-800 mt-2 mb-3 tracking-wider">
               CONTACT
             </h2>
             <ul className="text-xs text-gray-700 space-y-2 pb-2">
@@ -158,7 +151,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
 
           {/* Skills */}
           <section>
-            <h2 className="text-sm font-bold uppercase text-gray-800 mb-2 tracking-wider">
+            <h2 className="text-sm font-bold uppercase text-gray-800 mt-2 mb-3 tracking-wider">
               SKILLS
             </h2>
             {Object.entries(groupedSkills).map(
@@ -185,7 +178,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
           {/* Education */}
           {education.length > 0 && (
             <section>
-              <h2 className="text-sm font-bold uppercase text-gray-800 mb-3 tracking-wider">
+              <h2 className="text-sm font-bold uppercase text-gray-800 mt-2 mb-3 tracking-wider">
                 EDUCATION
               </h2>
               <div className="space-y-3">
@@ -202,7 +195,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
           {/* Certifications */}
           {certifications.length > 0 && (
             <section>
-              <h2 className="text-sm font-bold uppercase text-gray-800 mb-2 tracking-wider">
+              <h2 className="text-sm font-bold uppercase text-gray-800 mt-2 mb-3 tracking-wider">
                 CERTIFICATIONS
               </h2>
               <ul className="text-xs text-gray-700 space-y-1">
@@ -218,7 +211,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
           {/* Interests */}
           {interests.length > 0 && (
             <section>
-              <h2 className="text-sm font-bold uppercase text-gray-800 mb-2 tracking-wider">
+              <h2 className="text-sm font-bold uppercase text-gray-800 mt-2 mb-3 tracking-wider">
                 INTERESTS
               </h2>
               <ul className="text-xs text-gray-700 space-y-1">
@@ -235,7 +228,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
           {/* Work Experience */}
           {filteredWorkExperience.length > 0 && (
             <section>
-              <h2 className="text-sm font-bold uppercase text-gray-800 mb-3 tracking-wider border-b border-gray-400 pb-1">
+              <h2 className="text-sm font-bold uppercase text-gray-800 mt-2 mb-3 tracking-wider border-b border-gray-400 pt-1 pb-2">
                 WORK EXPERIENCE
               </h2>
               <div className="space-y-5">
@@ -271,7 +264,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
           {/* Projects Section */}
           {projects.length > 0 && (
             <section>
-              <h2 className="text-sm font-bold uppercase text-gray-800 mb-3 tracking-wider border-b border-gray-400 pb-1">
+              <h2 className="text-sm font-bold uppercase text-gray-800 mt-2 mb-3 tracking-wider border-b border-gray-400 pt-1 pb-2">
                 PROJECTS
               </h2>
               <div className="space-y-4">
@@ -287,7 +280,13 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
                       )}
                     </div>
 
-                    <p className="mt-1 mb-1">{proj.description}</p>
+                    <div className="mt-1 mb-1 space-y-0.5">
+                      {proj.description?.split("\n").map((line, i) => (
+                        <p key={i} className="text-sm">
+                          {line.trim() && `• ${line.trim()}`}
+                        </p>
+                      ))}
+                    </div>
 
                     <div className="flex flex-wrap gap-2 mt-1">
                       {proj.github && (

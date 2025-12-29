@@ -447,17 +447,20 @@ export const ProjectDetailForm = ({
 
             <div className="mt-6">
               <label className="block text-sm font-bold text-slate-700 mb-3 text-left w-full">
-                Description
+                Description (Bullet Points)
               </label>
               <textarea
-                placeholder="Describe your project, technologies used, and key features (Use AI suggestions above or write your own)"
+                placeholder="Enter bullet points, one per line. Example:&#10;Developed responsive UI using React & Tailwind&#10;Integrated MongoDB backend&#10;Deployed on Vercel with CI/CD"
                 className={projectDetailStyles.textarea}
-                rows={4} // Increased rows for better visibility
+                rows={5}
                 value={project.description || ""}
                 onChange={({ target }) =>
                   updateArrayItem(index, "description", target.value)
                 }
               />
+              <p className="text-xs text-slate-500 mt-2">
+                💡 Tip: Press Enter after each point for bullet formatting
+              </p>
             </div>
 
             {projectInfo.length > 1 && (
@@ -499,13 +502,20 @@ export const SkillsInfoForm = ({
   addArrayItem,
   removeArrayItem,
 }) => {
+  const skillCategories = [
+    "Programming Languages",
+    "Frontend Technologies",
+    "Backend Technologies",
+    "Other Tools",
+  ];
+
   return (
     <div className={skillsInfoStyles.container}>
       <h2 className={skillsInfoStyles.heading}>Skills</h2>
       <div className="space-y-6 mb-6">
         {skillsInfo.map((skill, index) => (
           <div key={index} className={skillsInfoStyles.item}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left w-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left w-full">
               <Input
                 label="Skill Name"
                 placeholder="JavaScript"
@@ -514,6 +524,25 @@ export const SkillsInfoForm = ({
                   updateArrayItem(index, "name", target.value)
                 }
               />
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-3 text-left w-full">
+                  Category
+                </label>
+                <select
+                  className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  value={skill.category || "Programming Languages"}
+                  onChange={({ target }) =>
+                    updateArrayItem(index, "category", target.value)
+                  }
+                >
+                  {skillCategories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-3 text-left w-full">
@@ -552,6 +581,7 @@ export const SkillsInfoForm = ({
           onClick={() =>
             addArrayItem({
               name: "",
+              category: "Programming Languages",
               progress: 0,
             })
           }

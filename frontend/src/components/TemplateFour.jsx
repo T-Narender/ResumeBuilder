@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { formatYearMonth } from "../utils/helper";
 
 const sectionTitleClass =
-  "text-sm font-bold uppercase tracking-wide border-b border-black mb-2 pb-1 text-left";
+  "text-sm font-bold uppercase tracking-wide border-b border-black mt-2 mb-3 pt-1 pb-2 text-left";
 
 const TemplateFour = ({ resumeData = {}, containerWidth }) => {
   const {
@@ -17,6 +17,22 @@ const TemplateFour = ({ resumeData = {}, containerWidth }) => {
     languages = [],
     interests = [],
   } = resumeData;
+
+  const skillGroups = {
+    "Programming Languages": [],
+    "Frontend Technologies": [],
+    "Backend Technologies": [],
+    "Other Tools": [],
+  };
+
+  skills.forEach((skill) => {
+    const category = skill?.category || "Other Tools";
+    if (skillGroups[category]) {
+      skillGroups[category].push(skill.name);
+    } else {
+      skillGroups["Other Tools"].push(skill.name);
+    }
+  });
 
   // Filter out empty work experience entries
   const filteredWorkExperience = Array.isArray(workExperience)
@@ -136,16 +152,28 @@ const TemplateFour = ({ resumeData = {}, containerWidth }) => {
       {skills.length > 0 && (
         <section className="mb-4">
           <h2 className={sectionTitleClass}>Technical Skills</h2>
-          <div className="flex flex-wrap gap-2 text-sm">
-            {skills.map((skill, idx) => (
-              <span
-                key={idx}
-                className="bg-gray-100 px-2 py-1 rounded text-left"
-                dir="ltr"
-              >
-                {skill.name}
-              </span>
-            ))}
+          <div className="space-y-2">
+            {Object.entries(skillGroups).map(
+              ([category, items]) =>
+                items.length > 0 && (
+                  <div key={category}>
+                    <p className="text-xs font-semibold text-gray-700 mb-1">
+                      {category}
+                    </p>
+                    <div className="flex flex-wrap gap-2 text-sm">
+                      {items.map((name, idx) => (
+                        <span
+                          key={`${category}-${idx}`}
+                          className="bg-gray-100 px-2 py-1 rounded text-left"
+                          dir="ltr"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+            )}
           </div>
         </section>
       )}
@@ -190,9 +218,14 @@ const TemplateFour = ({ resumeData = {}, containerWidth }) => {
               <h3 className="font-semibold text-sm text-left" dir="ltr">
                 {proj.title}
               </h3>
-              <p className="text-sm text-gray-700 mt-1 text-left" dir="ltr">
-                {proj.description}
-              </p>
+              <div
+                className="text-sm text-gray-700 mt-1 text-left space-y-0.5"
+                dir="ltr"
+              >
+                {proj.description?.split("\n").map((line, i) => (
+                  <p key={i}>{line.trim() && `• ${line.trim()}`}</p>
+                ))}
+              </div>
               <div className="flex gap-2 mt-1 text-sm">
                 {proj.github && (
                   <a
