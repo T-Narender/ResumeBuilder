@@ -853,11 +853,16 @@ const EditResume = () => {
     try {
       setIsLoading(true);
 
-      await axiosInstance.put(API_PATHS.RESUME.UPDATE(resumeId), {
+      const dataToSave = {
         ...resumeData,
         thumbnailLink: thumbnailLink || "",
         completion: completionPercentage,
-      });
+      };
+
+      console.log("Saving resume data:", dataToSave);
+      console.log("Skills being saved:", dataToSave.skills);
+
+      await axiosInstance.put(API_PATHS.RESUME.UPDATE(resumeId), dataToSave);
     } catch (err) {
       console.error("Error updating resume:", err);
       toast.error("Failed to update resume details");

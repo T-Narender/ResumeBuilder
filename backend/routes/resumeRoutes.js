@@ -16,7 +16,7 @@ resumeRouter.get("/", protect, getUserResumes);
 resumeRouter.get("/:id", protect, getResumeById);
 
 resumeRouter.put("/:id", protect, updateResume);
-resumeRouter.put('/:id/upload-images', protect, uploadResumeImage); // Change from uploadResumeImages to uploadResumeImage
+resumeRouter.put('/:id/upload-images', protect, uploadResumeImage); 
 
 resumeRouter.delete("/:id", protect, deleteResume);
 

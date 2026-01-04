@@ -1,6 +1,53 @@
 import React, { useEffect, useRef, useState } from "react";
 import { formatYearMonth } from "../utils/helper";
 
+const categorizeSkill = (name = "") => {
+  const n = name.toLowerCase();
+  if (
+    [
+      "javascript",
+      "typescript",
+      "java",
+      "python",
+      "c++",
+      "c#",
+      "go",
+      "ruby",
+    ].some((k) => n.includes(k))
+  )
+    return "Programming Languages";
+  if (
+    [
+      "react",
+      "next",
+      "angular",
+      "vue",
+      "svelte",
+      "tailwind",
+      "css",
+      "html",
+      "bootstrap",
+    ].some((k) => n.includes(k))
+  )
+    return "Frontend Technologies";
+  if (
+    [
+      "node",
+      "express",
+      "django",
+      "spring",
+      "fastapi",
+      "flask",
+      "nest",
+      "mongodb",
+      "postgres",
+      "mysql",
+    ].some((k) => n.includes(k))
+  )
+    return "Backend Technologies";
+  return "Other Tools";
+};
+
 const TemplateThree = ({ resumeData = {}, containerWidth }) => {
   const {
     profileInfo = {},
@@ -45,7 +92,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
   };
 
   skills.forEach((skill) => {
-    const category = skill?.category || "Other Tools";
+    const category = skill?.category || categorizeSkill(skill?.name);
     if (groupedSkills[category]) {
       groupedSkills[category].push(skill.name);
     } else {

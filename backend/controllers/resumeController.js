@@ -1,6 +1,6 @@
 import Resume from "../models/resumeModel.js";
-import fs from "fs"; // Add this import
-import path from "path"; // Add this import
+import fs from "fs";
+import path from "path";
 
 // Create new resume
 export const createResume = async (req, res) => {
@@ -44,6 +44,7 @@ export const createResume = async (req, res) => {
                 {
                     name: '',
                     progress: 0,
+                    category: 'Other Tools',
                 },
             ],
             projects: [
@@ -135,11 +136,11 @@ export const updateResume = async (req, res) => {
     }
 };
 
-// Delete resume - Fix this function
+// Delete resume and associated files
 export const deleteResume = async (req, res) => {
     try {
         console.log(`Deleting resume ${req.params.id} for user ${req.user._id}`);
-        
+
         const resume = await Resume.findOne({
             _id: req.params.id,
             userId: req.user._id,
@@ -151,7 +152,7 @@ export const deleteResume = async (req, res) => {
 
         // Create uploads folder path
         const uploadsFolder = path.join(process.cwd(), 'uploads');
-        
+
         // Delete thumbnail file if exists
         if (resume.thumbnailLink) {
             const oldThumbnail = path.join(uploadsFolder, path.basename(resume.thumbnailLink));
@@ -159,7 +160,7 @@ export const deleteResume = async (req, res) => {
                 fs.unlinkSync(oldThumbnail);
             }
         }
-        
+
         // Delete profile image if exists
         if (resume.profileInfo?.profilePreviewUrl) {
             const oldProfile = path.join(uploadsFolder, path.basename(resume.profileInfo.profilePreviewUrl));
@@ -170,14 +171,14 @@ export const deleteResume = async (req, res) => {
 
         // Delete the resume from database
         await Resume.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-        
+
         res.json({ message: "Resume and associated files deleted successfully" });
-        
+
     } catch (error) {
         console.error("Delete resume error:", error);
-        res.status(500).json({ 
-            message: "Failed to delete resume", 
-            error: error.message 
+        res.status(500).json({
+            message: "Failed to delete resume",
+            error: error.message
         });
     }
 };

@@ -3,6 +3,53 @@ import React, { useEffect, useRef, useState } from "react";
 import { LuExternalLink, LuGithub } from "react-icons/lu";
 import { formatYearMonth } from "../utils/helper";
 
+const categorizeSkill = (name = "") => {
+  const n = name.toLowerCase();
+  if (
+    [
+      "javascript",
+      "typescript",
+      "java",
+      "python",
+      "c++",
+      "c#",
+      "go",
+      "ruby",
+    ].some((k) => n.includes(k))
+  )
+    return "Programming Languages";
+  if (
+    [
+      "react",
+      "next",
+      "angular",
+      "vue",
+      "svelte",
+      "tailwind",
+      "css",
+      "html",
+      "bootstrap",
+    ].some((k) => n.includes(k))
+  )
+    return "Frontend Technologies";
+  if (
+    [
+      "node",
+      "express",
+      "django",
+      "spring",
+      "fastapi",
+      "flask",
+      "nest",
+      "mongodb",
+      "postgres",
+      "mysql",
+    ].some((k) => n.includes(k))
+  )
+    return "Backend Technologies";
+  return "Other Tools";
+};
+
 const sectionTitleClass =
   "text-base font-bold uppercase tracking-wide mt-2 mb-3 pt-1 pb-2 border-b border-gray-300 text-left";
 
@@ -27,7 +74,7 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
   };
 
   skills.forEach((skill) => {
-    const category = skill?.category || "Other Tools";
+    const category = skill?.category || categorizeSkill(skill?.name);
     if (skillGroups[category]) {
       skillGroups[category].push(skill.name);
     } else {

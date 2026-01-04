@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom"; // Remove BrowserRouter from here
+import { Routes, Route, Navigate } from "react-router-dom"; 
 import { Toaster } from "react-hot-toast";
 import { UserProvider, useUser } from "./context/UserContext";
 import LandingPage from "./pages/LandingPage";

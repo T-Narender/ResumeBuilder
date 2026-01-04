@@ -53,7 +53,12 @@ const resumeSchema = new mongoose.Schema({
   }],
   skills: [{
     name: { type: String, default: "" },
-    progress: { type: Number, default: 0, min: 0, max: 100 }
+    progress: { type: Number, default: 0, min: 0, max: 100 },
+    category: {
+      type: String,
+      default: "Other Tools",
+      enum: ["Programming Languages", "Frontend Technologies", "Backend Technologies", "Other Tools"]
+    }
   }],
   projects: [{
     title: { type: String, default: "" },
