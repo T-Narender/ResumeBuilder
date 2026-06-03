@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { BASE_URL, API_PATHS } from '../utils/apiPath';
+import { API_PATHS, buildApiUrl } from '../utils/apiPath';
 
 const calculateIntegrityScore = (metrics) => {
   let score = 100;
-  
+
   // Tab switches
   if (metrics.tabSwitchCount > 0) {
     score -= 10; // First switch
@@ -45,7 +45,7 @@ export const useInterview = () => {
   const [answers, setAnswers] = useState([]);
   const [resumeContext, setResumeContext] = useState(null);
   const [resumeId, setResumeId] = useState(null);
-  
+
   // New States
   const [targetRoleState, setTargetRoleState] = useState('');
   const [experienceState, setExperienceState] = useState('');
@@ -77,14 +77,14 @@ export const useInterview = () => {
     setTypingAnalytics(prev => {
       const now = Date.now();
       const newPauseTimes = [...prev.pauseTimes];
-      
+
       if (prev.lastKeyTime) {
         const pause = now - prev.lastKeyTime;
         if (pause < 5000) { // filter out pauses > 5s
           newPauseTimes.push(pause);
         }
       }
-      
+
       const isBackspace = key === 'Backspace';
       return {
         ...prev,
@@ -124,7 +124,7 @@ export const useInterview = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}${API_PATHS.AI.INTERVIEW.START}`, {
+      const response = await fetch(buildApiUrl(API_PATHS.AI.INTERVIEW.START), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -137,7 +137,7 @@ export const useInterview = () => {
         }),
       });
       const data = await response.json();
-      
+
       if (response.ok) {
         setQuestions(data.questions);
         setResumeContext(data.resumeJSON);
@@ -179,23 +179,23 @@ export const useInterview = () => {
   // Keep evaluateAnswer for backward compatibility if called elsewhere (legacy code)
   const evaluateAnswer = async (answerText, regenerate = false) => {
     if (!answerText.trim()) return null;
-    
+
     setLoading(true);
     const currentQuestion = questions[currentQuestionIndex];
-    
+
     try {
-      const response = await fetch(`${BASE_URL}${API_PATHS.AI.INTERVIEW.EVALUATE}`, {
+      const response = await fetch(buildApiUrl(API_PATHS.AI.INTERVIEW.EVALUATE), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          question: currentQuestion.question, 
+        body: JSON.stringify({
+          question: currentQuestion.question,
           answer: answerText,
           resumeJSON: resumeContext,
           regenerate
         }),
       });
       const evaluation = await response.json();
-      
+
       if (response.ok) {
         const answerRecord = {
           questionId: currentQuestion.id,
@@ -203,7 +203,7 @@ export const useInterview = () => {
           answer: answerText,
           ...evaluation
         };
-        
+
         setAnswers(prev => [...prev, answerRecord]);
         return evaluation;
       } else {
@@ -247,12 +247,12 @@ export const useInterview = () => {
     const answersPayload = questions.map(q => {
       const qId = q.id;
       const ansText = localAnswers[qId]?.trim() ? localAnswers[qId] : "No answer provided.";
-      
+
       let timeSpentSec = questionTimes[qId] || 0;
       if (qId === questions[currentQuestionIndex]?.id && questionStartTime) {
         timeSpentSec += Math.round((Date.now() - questionStartTime) / 1000);
       }
-      
+
       return {
         questionId: qId,
         answer: ansText,
@@ -262,7 +262,7 @@ export const useInterview = () => {
     });
 
     const totalTimeSeconds = answersPayload.reduce((sum, a) => sum + a.timeSpentSeconds, 0);
-    
+
     const words = (typingAnalytics.keystrokeCount + typingAnalytics.backspaceCount) / 5;
     const minutes = totalTimeSeconds / 60 || 0.1;
     const typingSpeedWpm = Math.round(words / minutes);
@@ -272,7 +272,7 @@ export const useInterview = () => {
       : 0;
 
     try {
-      const response = await fetch(`${BASE_URL}${API_PATHS.AI.INTERVIEW.EVALUATE_SESSION}`, {
+      const response = await fetch(buildApiUrl(API_PATHS.AI.INTERVIEW.EVALUATE_SESSION), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -304,11 +304,11 @@ export const useInterview = () => {
         // Skip saving for guest users
         if (resumeId) {
           try {
-            await fetch(`${BASE_URL}${API_PATHS.AI.INTERVIEW.SAVE}`, {
+            await fetch(buildApiUrl(API_PATHS.AI.INTERVIEW.SAVE), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                resumeId, 
+              body: JSON.stringify({
+                resumeId,
                 questions,
                 answers: report.evaluations,
                 overallScore: report.overallScore

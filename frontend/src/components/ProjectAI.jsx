@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { BrainIcon, Copy, AlertCircle, RefreshCw } from "lucide-react";
-import { BASE_URL, API_PATHS } from "../utils/apiPath";
+import { API_PATHS, buildApiUrl } from "../utils/apiPath";
 import toast from "react-hot-toast";
 
 const prompt =
@@ -40,22 +40,19 @@ const ProjectAI = ({ project, projectIndex, onProjectDataSelect }) => {
       const PROMPT = prompt.replace("{projectTitle}", title);
       console.log("Project Prompt:", PROMPT);
 
-      const response = await fetch(
-        `${BASE_URL}${API_PATHS.AI.GENERATE}`,
-        {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json' 
-          },
-          body: JSON.stringify({
-            prompt: PROMPT,
-            regenerate: regenerate
-          })
-        }
-      );
+      const response = await fetch(buildApiUrl(API_PATHS.AI.GENERATE), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: PROMPT,
+          regenerate: regenerate,
+        }),
+      });
       const data = await response.json();
       if (!response.ok) {
-        toast.error(data.message || 'Failed to generate descriptions');
+        toast.error(data.message || "Failed to generate descriptions");
         const fallbackProject = generateFallbackProject(title);
         setAIGeneratedProject(fallbackProject);
         return;
@@ -69,7 +66,7 @@ const ProjectAI = ({ project, projectIndex, onProjectDataSelect }) => {
       setAIGeneratedProject(parsedProject);
     } catch (error) {
       console.error("Error generating AI project description:", error);
-      toast.error('Failed to generate descriptions');
+      toast.error("Failed to generate descriptions");
       // Fallback descriptions based on title if AI fails
       const fallbackProject = generateFallbackProject(title);
       setAIGeneratedProject(fallbackProject);

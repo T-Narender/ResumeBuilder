@@ -1,6 +1,12 @@
 import React, { useState } from "react";
-import { BrainIcon, Copy, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
-import { BASE_URL, API_PATHS } from "../utils/apiPath";
+import {
+  BrainIcon,
+  Copy,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
+import { API_PATHS, buildApiUrl } from "../utils/apiPath";
 import toast from "react-hot-toast";
 
 const prompt =
@@ -36,23 +42,23 @@ const WorkExperienceAI = ({
         .replace("{company}", company || "the company");
       console.log("Work Experience Prompt:", PROMPT);
 
-      const response = await fetch(
-        `${BASE_URL}${API_PATHS.AI.GENERATE}`,
-        {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json' 
-          },
-          body: JSON.stringify({
-            prompt: PROMPT,
-            regenerate: regenerate
-          })
-        }
-      );
+      const response = await fetch(buildApiUrl(API_PATHS.AI.GENERATE), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: PROMPT,
+          regenerate: regenerate,
+        }),
+      });
       const data = await response.json();
       if (!response.ok) {
-        toast.error(data.message || 'Failed to generate descriptions');
-        const fallbackDescriptions = generateFallbackDescriptions(role, company);
+        toast.error(data.message || "Failed to generate descriptions");
+        const fallbackDescriptions = generateFallbackDescriptions(
+          role,
+          company,
+        );
         setAIGeneratedDescriptions(fallbackDescriptions);
         return;
       }
@@ -65,7 +71,7 @@ const WorkExperienceAI = ({
       setAIGeneratedDescriptions(parsedDescriptions);
     } catch (error) {
       console.error("Error generating AI work experience description:", error);
-      toast.error('Failed to generate descriptions');
+      toast.error("Failed to generate descriptions");
       // Fallback descriptions based on role if AI fails
       const fallbackDescriptions = generateFallbackDescriptions(role, company);
       setAIGeneratedDescriptions(fallbackDescriptions);
@@ -81,7 +87,7 @@ const WorkExperienceAI = ({
         .map((section) => {
           const lines = section.split("\n");
           const levelLine = lines.find((line) =>
-            line.toLowerCase().includes("level:")
+            line.toLowerCase().includes("level:"),
           );
           const level = levelLine ? levelLine.split(":")[1].trim() : "general";
           let description = lines

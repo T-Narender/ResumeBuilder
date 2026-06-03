@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { BASE_URL, API_PATHS } from '../utils/apiPath';
+import { API_PATHS, buildApiUrl } from '../utils/apiPath';
 
 export const useSkillGap = () => {
   const [loading, setLoading] = useState(false);
@@ -15,7 +15,7 @@ export const useSkillGap = () => {
     setLoading(true);
     setAnalysisResult(null);
     try {
-      const response = await fetch(`${BASE_URL}${API_PATHS.AI.SKILL_GAP}`, {
+      const response = await fetch(buildApiUrl(API_PATHS.AI.SKILL_GAP), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -26,7 +26,7 @@ export const useSkillGap = () => {
         }),
       });
       const data = await response.json();
-      
+
       if (response.ok) {
         setAnalysisResult(data);
       } else {

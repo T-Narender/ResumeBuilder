@@ -1,25 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useInterview } from '../hooks/useInterview';
-import DashboardLayout from '../components/DashboardLayout';
-import QuestionCard from '../components/QuestionCard';
-import AnswerEvaluator from '../components/AnswerEvaluator';
-import InterviewSummary from '../components/InterviewSummary';
-import axiosInstance from '../utils/axiosInstance';
-import { BASE_URL, API_PATHS } from '../utils/apiPath';
-import toast from 'react-hot-toast';
-import { Play, Loader2, FileText, Target, ShieldQuestion, Upload, X, Maximize, AlertTriangle, Sliders, UserCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { useInterview } from "../hooks/useInterview";
+import DashboardLayout from "../components/DashboardLayout";
+import QuestionCard from "../components/QuestionCard";
+import AnswerEvaluator from "../components/AnswerEvaluator";
+import InterviewSummary from "../components/InterviewSummary";
+import axiosInstance from "../utils/axiosInstance";
+import { API_PATHS, buildApiUrl } from "../utils/apiPath";
+import toast from "react-hot-toast";
+import {
+  Play,
+  Loader2,
+  FileText,
+  Target,
+  ShieldQuestion,
+  Upload,
+  X,
+  Maximize,
+  AlertTriangle,
+  Sliders,
+  UserCheck,
+} from "lucide-react";
 
 const InterviewPrep = () => {
-  const { 
-    loading, 
-    sessionState, 
-    questions, 
-    currentQuestionIndex, 
-    currentQuestion, 
-    answers, 
-    startInterview, 
-    evaluateAnswer, 
-    nextQuestion, 
+  const {
+    loading,
+    sessionState,
+    questions,
+    currentQuestionIndex,
+    currentQuestion,
+    answers,
+    startInterview,
+    evaluateAnswer,
+    nextQuestion,
     resetInterview,
     // Additive
     localAnswers,
@@ -35,30 +47,30 @@ const InterviewPrep = () => {
     recordCutAttempt,
     recordTabSwitch,
     recordFullscreenExit,
-    questionStartTime
+    questionStartTime,
   } = useInterview();
 
   const [resumes, setResumes] = useState([]);
-  const [selectedResumeId, setSelectedResumeId] = useState('');
-  const [targetRole, setTargetRole] = useState('');
+  const [selectedResumeId, setSelectedResumeId] = useState("");
+  const [targetRole, setTargetRole] = useState("");
   const [fetchingResumes, setFetchingResumes] = useState(true);
 
-  const [inputMode, setInputMode] = useState('existing');
-  const [resumeText, setResumeText] = useState('');
-  const [uploadedFileName, setUploadedFileName] = useState('');
+  const [inputMode, setInputMode] = useState("existing");
+  const [resumeText, setResumeText] = useState("");
+  const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadLoading, setUploadLoading] = useState(false);
 
   // Setup options
-  const [experience, setExperience] = useState('Mid-level');
-  const [interviewLength, setInterviewLength] = useState('standard');
+  const [experience, setExperience] = useState("Mid-level");
+  const [interviewLength, setInterviewLength] = useState("standard");
 
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenInitialized, setFullscreenInitialized] = useState(false);
-  
+
   // Tab switch state
   const [showTabAlert, setShowTabAlert] = useState(false);
-  
+
   // Submission protection
   const [isTerminating, setIsTerminating] = useState(false);
   const hiddenAt = useRef(null);
@@ -85,21 +97,21 @@ const InterviewPrep = () => {
 
   // Monitor Fullscreen Exit
   useEffect(() => {
-    if (sessionState !== 'active') return;
+    if (sessionState !== "active") return;
 
     const handleFullscreenChange = () => {
       const isCurrentlyFS = !!document.fullscreenElement;
       setIsFullscreen(isCurrentlyFS);
 
-      if (!isCurrentlyFS && sessionState === 'active') {
+      if (!isCurrentlyFS && sessionState === "active") {
         recordFullscreenExit();
         toast.error("Warning: Fullscreen mode exited.");
       }
     };
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, [sessionState]);
 
@@ -107,7 +119,7 @@ const InterviewPrep = () => {
 
   // Monitor Tab Switch
   useEffect(() => {
-    if (sessionState !== 'active') return;
+    if (sessionState !== "active") return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -124,9 +136,9 @@ const InterviewPrep = () => {
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [sessionState]);
 
@@ -134,11 +146,11 @@ const InterviewPrep = () => {
 
   // Auto-submit if exitCount reaches 4
   useEffect(() => {
-    if (sessionState === 'active' && exitCount >= 4 && !isTerminating) {
+    if (sessionState === "active" && exitCount >= 4 && !isTerminating) {
       setIsTerminating(true);
       toast.error("Interview terminated due to multiple fullscreen exits.");
       if (document.fullscreenElement) {
-        document.exitFullscreen().catch(err => console.error(err));
+        document.exitFullscreen().catch((err) => console.error(err));
       }
       submitInterview();
     }
@@ -146,12 +158,12 @@ const InterviewPrep = () => {
 
   // Auto-submit if tabSwitchCount reaches 4
   useEffect(() => {
-    if (sessionState === 'active' && tabSwitchCount >= 4 && !isTerminating) {
+    if (sessionState === "active" && tabSwitchCount >= 4 && !isTerminating) {
       setIsTerminating(true);
       toast.error("Interview terminated due to multiple tab switches.");
       setShowTabAlert(false);
       if (document.fullscreenElement) {
-        document.exitFullscreen().catch(err => console.error(err));
+        document.exitFullscreen().catch((err) => console.error(err));
       }
       submitInterview();
     }
@@ -160,14 +172,17 @@ const InterviewPrep = () => {
   const enterFullscreen = () => {
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
-      elem.requestFullscreen()
+      elem
+        .requestFullscreen()
         .then(() => {
           setIsFullscreen(true);
           setFullscreenInitialized(true);
         })
         .catch((err) => {
           console.error("Error attempting to enable fullscreen:", err);
-          toast.error("Could not enter fullscreen. Please check browser settings.");
+          toast.error(
+            "Could not enter fullscreen. Please check browser settings.",
+          );
         });
     }
   };
@@ -175,12 +190,12 @@ const InterviewPrep = () => {
   const handleStart = () => {
     setIsTerminating(false);
     startInterview(
-      inputMode === 'existing' ? selectedResumeId : null,
+      inputMode === "existing" ? selectedResumeId : null,
       targetRole,
       false,
-      inputMode === 'upload' ? resumeText : '',
+      inputMode === "upload" ? resumeText : "",
       experience,
-      interviewLength
+      interviewLength,
     );
     enterFullscreen();
   };
@@ -191,21 +206,21 @@ const InterviewPrep = () => {
     setUploadLoading(true);
     try {
       const formData = new FormData();
-      formData.append('resume', file);
-      const response = await fetch(
-        `${BASE_URL}${API_PATHS.RESUME.EXTRACT_TEXT}`,
-        { method: 'POST', body: formData }
-      );
+      formData.append("resume", file);
+      const response = await fetch(buildApiUrl(API_PATHS.RESUME.EXTRACT_TEXT), {
+        method: "POST",
+        body: formData,
+      });
       const data = await response.json();
       if (!response.ok) {
-        toast.error(data.message || 'Failed to read PDF');
+        toast.error(data.message || "Failed to read PDF");
         return;
       }
       setResumeText(data.resumeText);
       setUploadedFileName(file.name);
-      toast.success('Resume uploaded!');
+      toast.success("Resume uploaded!");
     } catch (error) {
-      toast.error('Failed to upload resume');
+      toast.error("Failed to upload resume");
     } finally {
       setUploadLoading(false);
     }
@@ -214,16 +229,19 @@ const InterviewPrep = () => {
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto p-4 md:p-8">
-        
-        {sessionState === 'setup' && (
+        {sessionState === "setup" && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 text-left">
             <div className="mb-8 text-center max-w-2xl mx-auto">
               <div className="w-16 h-16 bg-violet-100 text-violet-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ShieldQuestion size={32} />
               </div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-3">AI Mock Interview</h1>
+              <h1 className="text-3xl font-bold text-gray-800 mb-3">
+                AI Mock Interview
+              </h1>
               <p className="text-gray-600">
-                Practice answering behavioural and technical questions tailored specifically to your resume and your target role. Get instant feedback and scoring.
+                Practice answering behavioural and technical questions tailored
+                specifically to your resume and your target role. Get instant
+                feedback and scoring.
               </p>
             </div>
 
@@ -232,28 +250,28 @@ const InterviewPrep = () => {
               <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-fit mb-6">
                 <button
                   onClick={() => {
-                    setInputMode('existing');
-                    setResumeText('');
-                    setUploadedFileName('');
+                    setInputMode("existing");
+                    setResumeText("");
+                    setUploadedFileName("");
                   }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    inputMode === 'existing'
-                      ? 'bg-white text-violet-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                    inputMode === "existing"
+                      ? "bg-white text-violet-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   My Resumes
                 </button>
                 <button
                   onClick={() => {
-                    setInputMode('upload');
-                    setResumeText('');
-                    setUploadedFileName('');
+                    setInputMode("upload");
+                    setResumeText("");
+                    setUploadedFileName("");
                   }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    inputMode === 'upload'
-                      ? 'bg-white text-violet-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                    inputMode === "upload"
+                      ? "bg-white text-violet-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   Upload Resume PDF
@@ -261,10 +279,11 @@ const InterviewPrep = () => {
               </div>
 
               {/* Existing Flow */}
-              {inputMode === 'existing' && (
+              {inputMode === "existing" && (
                 <div className="space-y-2">
                   <label className="block text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <FileText size={18} className="text-violet-500" /> Select Resume
+                    <FileText size={18} className="text-violet-500" /> Select
+                    Resume
                   </label>
                   {fetchingResumes ? (
                     <div className="animate-pulse h-12 bg-gray-100 rounded-lg"></div>
@@ -273,17 +292,24 @@ const InterviewPrep = () => {
                       value={selectedResumeId}
                       onChange={(e) => {
                         setSelectedResumeId(e.target.value);
-                        const res = resumes.find(r => r._id === e.target.value);
+                        const res = resumes.find(
+                          (r) => r._id === e.target.value,
+                        );
                         if (res && res.profileInfo?.designation) {
                           setTargetRole(res.profileInfo.designation);
                         }
                       }}
                       className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-gray-50"
                     >
-                      {resumes.length === 0 && <option value="">No resumes found</option>}
-                      {resumes.map(resume => (
+                      {resumes.length === 0 && (
+                        <option value="">No resumes found</option>
+                      )}
+                      {resumes.map((resume) => (
                         <option key={resume._id} value={resume._id}>
-                          {resume.title} {resume.profileInfo?.designation ? `- ${resume.profileInfo.designation}` : ''}
+                          {resume.title}{" "}
+                          {resume.profileInfo?.designation
+                            ? `- ${resume.profileInfo.designation}`
+                            : ""}
                         </option>
                       ))}
                     </select>
@@ -292,24 +318,34 @@ const InterviewPrep = () => {
               )}
 
               {/* New Upload Flow */}
-              {inputMode === 'upload' && (
+              {inputMode === "upload" && (
                 <div className="space-y-3">
                   <label className="block text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <Upload size={18} className="text-violet-500" /> Upload Your Resume (PDF only, max 5MB)
+                    <Upload size={18} className="text-violet-500" /> Upload Your
+                    Resume (PDF only, max 5MB)
                   </label>
 
                   {!uploadedFileName ? (
                     <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-violet-300 rounded-lg cursor-pointer bg-violet-50 hover:bg-violet-100 transition-colors">
                       {uploadLoading ? (
                         <div className="flex items-center gap-2">
-                          <Loader2 size={20} className="animate-spin text-violet-500" />
-                          <span className="text-sm text-violet-600">Reading PDF...</span>
+                          <Loader2
+                            size={20}
+                            className="animate-spin text-violet-500"
+                          />
+                          <span className="text-sm text-violet-600">
+                            Reading PDF...
+                          </span>
                         </div>
                       ) : (
                         <>
                           <Upload size={24} className="text-violet-400 mb-2" />
-                          <span className="text-sm text-violet-600 font-medium">Click to upload PDF</span>
-                          <span className="text-xs text-gray-400 mt-1">Max 5MB, text-based PDF only</span>
+                          <span className="text-sm text-violet-600 font-medium">
+                            Click to upload PDF
+                          </span>
+                          <span className="text-xs text-gray-400 mt-1">
+                            Max 5MB, text-based PDF only
+                          </span>
                         </>
                       )}
                       <input
@@ -324,12 +360,14 @@ const InterviewPrep = () => {
                     <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex items-center gap-2">
                         <FileText size={16} className="text-green-600" />
-                        <span className="text-sm text-green-700 font-medium">{uploadedFileName}</span>
+                        <span className="text-sm text-green-700 font-medium">
+                          {uploadedFileName}
+                        </span>
                       </div>
                       <button
                         onClick={() => {
-                          setUploadedFileName('');
-                          setResumeText('');
+                          setUploadedFileName("");
+                          setResumeText("");
                         }}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                       >
@@ -357,7 +395,8 @@ const InterviewPrep = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <Sliders size={18} className="text-violet-500" /> Interview Length
+                    <Sliders size={18} className="text-violet-500" /> Interview
+                    Length
                   </label>
                   <select
                     value={interviewLength}
@@ -372,7 +411,8 @@ const InterviewPrep = () => {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <UserCheck size={18} className="text-violet-500" /> Experience Level
+                    <UserCheck size={18} className="text-violet-500" />{" "}
+                    Experience Level
                   </label>
                   <select
                     value={experience}
@@ -392,31 +432,39 @@ const InterviewPrep = () => {
                 disabled={
                   loading ||
                   !targetRole.trim() ||
-                  (inputMode === 'existing' && !selectedResumeId) ||
-                  (inputMode === 'upload' && !resumeText)
+                  (inputMode === "existing" && !selectedResumeId) ||
+                  (inputMode === "upload" && !resumeText)
                 }
                 className="w-full mt-4 py-4 bg-violet-600 text-white rounded-xl font-bold text-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors shadow-sm"
               >
-                {loading ? <Loader2 size={24} className="animate-spin" /> : <Play size={24} />}
-                {loading ? 'Generating Interview...' : 'Start Interview'}
+                {loading ? (
+                  <Loader2 size={24} className="animate-spin" />
+                ) : (
+                  <Play size={24} />
+                )}
+                {loading ? "Generating Interview..." : "Start Interview"}
               </button>
             </div>
           </div>
         )}
 
-        {sessionState === 'active' && currentQuestion && (
+        {sessionState === "active" && currentQuestion && (
           <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <QuestionCard 
-              question={currentQuestion} 
-              index={currentQuestionIndex} 
-              total={questions.length} 
+            <QuestionCard
+              question={currentQuestion}
+              index={currentQuestionIndex}
+              total={questions.length}
               startTime={questionStartTime}
             />
-            <AnswerEvaluator 
+            <AnswerEvaluator
               questionId={currentQuestion.id}
               localAnswers={localAnswers}
               setLocalAnswers={setLocalAnswers}
-              onNext={currentQuestionIndex === questions.length - 1 ? submitInterview : nextQuestion}
+              onNext={
+                currentQuestionIndex === questions.length - 1
+                  ? submitInterview
+                  : nextQuestion
+              }
               isLastQuestion={currentQuestionIndex === questions.length - 1}
               recordKeystroke={recordKeystroke}
               recordCopyAttempt={recordCopyAttempt}
@@ -428,80 +476,97 @@ const InterviewPrep = () => {
         )}
 
         {/* Tab Switch Alert Modal */}
-        {sessionState === 'active' && showTabAlert && tabSwitchCount < 4 && !isTerminating && (
-          <div className="fixed inset-0 bg-gray-900/85 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 md:p-8 text-center animate-in fade-in zoom-in-95 duration-200 border border-orange-100">
-              <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                <AlertTriangle size={32} />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">Tab Switch Detected</h3>
-              <p className="text-gray-600 mb-6 text-sm">
-                Navigating away from the interview tab is strictly prohibited.
-              </p>
-              
-              <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-6 text-left">
-                <span className="text-sm font-bold text-orange-800 block mb-1">
-                  Tab Switches: {tabSwitchCount} / 4
-                </span>
-                <span className="text-xs text-orange-600 font-medium">
-                  {tabSwitchCount === 1 && "Warning 1: Please do not leave this tab."}
-                  {tabSwitchCount === 2 && "Warning 2: Integrity penalty applied. Tab switches are logged."}
-                  {tabSwitchCount === 3 && "Warning 3: Severe integrity penalty applied. The next switch will terminate your interview."}
-                </span>
-              </div>
+        {sessionState === "active" &&
+          showTabAlert &&
+          tabSwitchCount < 4 &&
+          !isTerminating && (
+            <div className="fixed inset-0 bg-gray-900/85 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 md:p-8 text-center animate-in fade-in zoom-in-95 duration-200 border border-orange-100">
+                <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                  <AlertTriangle size={32} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  Tab Switch Detected
+                </h3>
+                <p className="text-gray-600 mb-6 text-sm">
+                  Navigating away from the interview tab is strictly prohibited.
+                </p>
 
-              <button
-                onClick={() => setShowTabAlert(false)}
-                className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
-              >
-                Acknowledge & Continue
-              </button>
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-6 text-left">
+                  <span className="text-sm font-bold text-orange-800 block mb-1">
+                    Tab Switches: {tabSwitchCount} / 4
+                  </span>
+                  <span className="text-xs text-orange-600 font-medium">
+                    {tabSwitchCount === 1 &&
+                      "Warning 1: Please do not leave this tab."}
+                    {tabSwitchCount === 2 &&
+                      "Warning 2: Integrity penalty applied. Tab switches are logged."}
+                    {tabSwitchCount === 3 &&
+                      "Warning 3: Severe integrity penalty applied. The next switch will terminate your interview."}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setShowTabAlert(false)}
+                  className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
+                >
+                  Acknowledge & Continue
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Fullscreen Alert Modal */}
-        {sessionState === 'active' && fullscreenInitialized && !isFullscreen && exitCount < 4 && !isTerminating && (
-          <div className="fixed inset-0 bg-gray-900/85 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 md:p-8 text-center animate-in fade-in zoom-in-95 duration-200 border border-red-100">
-              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                <AlertTriangle size={32} />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">Fullscreen Mode Required</h3>
-              <p className="text-gray-600 mb-6 text-sm">
-                To ensure a fair and integral testing environment, this mock interview requires fullscreen mode.
-              </p>
-              
-              <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6 text-left">
-                <span className="text-sm font-bold text-red-800 block mb-1">
-                  Fullscreen Exits: {exitCount} / 4
-                </span>
-                <span className="text-xs text-red-600 font-medium">
-                  {exitCount === 1 && "Warning 1: Please remain in fullscreen mode."}
-                  {exitCount === 2 && "Warning 2: Integrity penalty applied. Exits are logged."}
-                  {exitCount === 3 && "Warning 3: Severe integrity penalty applied. The next exit will terminate your interview."}
-                </span>
-              </div>
+        {sessionState === "active" &&
+          fullscreenInitialized &&
+          !isFullscreen &&
+          exitCount < 4 &&
+          !isTerminating && (
+            <div className="fixed inset-0 bg-gray-900/85 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 md:p-8 text-center animate-in fade-in zoom-in-95 duration-200 border border-red-100">
+                <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                  <AlertTriangle size={32} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  Fullscreen Mode Required
+                </h3>
+                <p className="text-gray-600 mb-6 text-sm">
+                  To ensure a fair and integral testing environment, this mock
+                  interview requires fullscreen mode.
+                </p>
 
-              <button
-                onClick={enterFullscreen}
-                className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
-              >
-                <Maximize size={18} /> Re-enter Fullscreen
-              </button>
+                <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6 text-left">
+                  <span className="text-sm font-bold text-red-800 block mb-1">
+                    Fullscreen Exits: {exitCount} / 4
+                  </span>
+                  <span className="text-xs text-red-600 font-medium">
+                    {exitCount === 1 &&
+                      "Warning 1: Please remain in fullscreen mode."}
+                    {exitCount === 2 &&
+                      "Warning 2: Integrity penalty applied. Exits are logged."}
+                    {exitCount === 3 &&
+                      "Warning 3: Severe integrity penalty applied. The next exit will terminate your interview."}
+                  </span>
+                </div>
+
+                <button
+                  onClick={enterFullscreen}
+                  className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
+                >
+                  <Maximize size={18} /> Re-enter Fullscreen
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {sessionState === 'summary' && (
-          <InterviewSummary 
-            answers={answers} 
+        {sessionState === "summary" && (
+          <InterviewSummary
+            answers={answers}
             report={overallReport}
             integrityMetrics={integrityMetrics}
-            onPracticeAgain={resetInterview} 
+            onPracticeAgain={resetInterview}
           />
         )}
-
       </div>
     </DashboardLayout>
   );
