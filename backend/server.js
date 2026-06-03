@@ -21,6 +21,14 @@ const envOrigins = (process.env.CORS_ORIGIN || "")
     .map((o) => o.trim())
     .filter(Boolean);
 
+const isAllowedOrigin = (origin) => {
+    if (allowedOrigins.includes(origin)) {
+        return true;
+    }
+
+    return /^https:\/\/ai-resumebuilder(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
+};
+
 const allowedOrigins = [
     ...(process.env.NODE_ENV === "production"
         ? [
@@ -38,7 +46,7 @@ app.use(
             // Allow non-browser tools like Postman (no Origin header)
             if (!origin) return callback(null, true);
 
-            if (allowedOrigins.includes(origin)) {
+            if (isAllowedOrigin(origin)) {
                 return callback(null, true);
             }
 
@@ -66,7 +74,7 @@ app.use(
     express.static(path.join(__dirname, '/uploads'), {
         setHeaders: (res, _path) => {
             const origin = res.req?.headers?.origin;
-            if (origin && allowedOrigins.includes(origin)) {
+            if (origin && isAllowedOrigin(origin)) {
                 res.set('Access-Control-Allow-Origin', origin);
                 res.set('Vary', 'Origin');
             }
