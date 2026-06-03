@@ -25,6 +25,7 @@ const allowedOrigins = [
     ...(process.env.NODE_ENV === "production"
         ? [
             "https://ai-resumebuilder-git-main-t-narenders-projects.vercel.app", // Vercel preview URL
+            "https://ai-resumebuilder-pi.vercel.app", // current Vercel production URL
             "https://airesumebuilder-eight.vercel.app", // main prod
         ]
         : ["http://localhost:5173", "http://localhost:3000"]),
