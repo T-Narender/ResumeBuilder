@@ -25,6 +25,11 @@
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:30001';
 const BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 
+export const buildApiUrl = (path) => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${BASE_URL}${normalizedPath}`;
+};
+
 export const API_PATHS = {
   AUTH: {
     LOGIN: '/api/auth/login',
