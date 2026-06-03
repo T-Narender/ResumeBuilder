@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { BrainIcon, Copy, CheckCircle, AlertCircle } from "lucide-react";
-import { AIChatSession } from "../../service/AIModal";
+import { BrainIcon, Copy, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { BASE_URL, API_PATHS } from "../utils/apiPath";
+import toast from "react-hot-toast";
 
 const prompt =
   "Job Title: {jobTitle}. Based on this job title, generate 3 different professional resume summaries in 4-5 lines each that highlight relevant skills, experience expectations, and career objectives. Format as: LEVEL: [fresher/mid-level/experienced] followed by the summary text. Separate each summary with '---'";
@@ -11,7 +12,7 @@ const Summary = ({ profileData }) => {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [showDesignationError, setShowDesignationError] = useState(false);
 
-  const GenerateSummaryFromAI = async () => {
+  const GenerateSummaryFromAI = async (regenerate = false) => {
     const designation = profileData?.designation?.trim();
 
     if (!designation) {
@@ -27,16 +28,36 @@ const Summary = ({ profileData }) => {
       const PROMPT = prompt.replace("{jobTitle}", designation);
       console.log("Prompt:", PROMPT);
 
-      const result = await AIChatSession.sendMessage(PROMPT);
-      const summaryText = result.response.text();
+      const response = await fetch(
+        `${BASE_URL}${API_PATHS.AI.GENERATE}`,
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({
+            prompt: PROMPT,
+            regenerate: regenerate
+          })
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.message || 'Failed to generate summary');
+        const fallbackSummaries = generateFallbackSummaries(designation);
+        setAIGeneratedSummaryList(fallbackSummaries);
+        return;
+      }
+      const text = data.response;
 
-      console.log("AI Summary Response:", summaryText);
+      console.log("AI Summary Response:", text);
 
       // Parse the text response
-      const parsedSummaries = parseTextResponse(summaryText);
+      const parsedSummaries = parseTextResponse(text);
       setAIGeneratedSummaryList(parsedSummaries);
     } catch (error) {
-      console.error("Error generating AI summary:", error);
+      console.error("Error generating summary:", error);
+      toast.error("Failed to generate summary");
       // Fallback summaries based on designation if AI fails
       const fallbackSummaries = generateFallbackSummaries(designation);
       setAIGeneratedSummaryList(fallbackSummaries);
@@ -147,17 +168,33 @@ const Summary = ({ profileData }) => {
         <h3 className="text-lg font-semibold text-gray-800">
           AI Summary Suggestions
         </h3>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            GenerateSummaryFromAI();
-          }}
-          disabled={loading}
-          className="border-violet-500 text-violet-600 bg-transparent border flex gap-2 rounded-lg px-4 py-2 text-sm font-medium hover:bg-violet-50 disabled:opacity-50 transition-colors"
-        >
-          <BrainIcon className="h-4 w-4 flex-shrink-0" />
-          {loading ? "Generating..." : "Generate Suggestions"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              GenerateSummaryFromAI(false);
+            }}
+            disabled={loading}
+            className="border-violet-500 text-violet-600 bg-transparent border flex gap-2 rounded-lg px-4 py-2 text-sm font-medium hover:bg-violet-50 disabled:opacity-50 transition-colors"
+          >
+            <BrainIcon className="h-4 w-4 flex-shrink-0" />
+            {loading ? "Generating..." : "Generate Suggestions"}
+          </button>
+
+          {aiGeneratedSummaryList.length > 0 && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                GenerateSummaryFromAI(true);
+              }}
+              disabled={loading}
+              className="border-orange-500 text-orange-600 bg-transparent border flex gap-2 rounded-lg px-4 py-2 text-sm font-medium hover:bg-orange-50 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {loading ? "Regenerating..." : "Regenerate"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Designation Required Error */}

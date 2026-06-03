@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { BrainIcon, Copy, CheckCircle, AlertCircle } from "lucide-react";
-import { AIChatSession } from "../../service/AIModal";
+import { BrainIcon, Copy, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { BASE_URL, API_PATHS } from "../utils/apiPath";
+import toast from "react-hot-toast";
 
 const prompt =
   "Job Role: {jobRole} at {company}. Based on this job role and company, generate 3 different professional work experience descriptions in 3-4 bullet points each that highlight key responsibilities, achievements, and impact. Format as: LEVEL: [entry/mid/senior] followed by the description with bullet points. Separate each description with '---'";
@@ -15,7 +16,7 @@ const WorkExperienceAI = ({
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [showRoleError, setShowRoleError] = useState(false);
 
-  const GenerateDescriptionFromAI = async () => {
+  const GenerateDescriptionFromAI = async (regenerate = false) => {
     // Check if role and company are filled
     const role = workExperience?.role?.trim();
     const company = workExperience?.company?.trim();
@@ -35,16 +36,36 @@ const WorkExperienceAI = ({
         .replace("{company}", company || "the company");
       console.log("Work Experience Prompt:", PROMPT);
 
-      const result = await AIChatSession.sendMessage(PROMPT);
-      const responseText = result.response.text();
+      const response = await fetch(
+        `${BASE_URL}${API_PATHS.AI.GENERATE}`,
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({
+            prompt: PROMPT,
+            regenerate: regenerate
+          })
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.message || 'Failed to generate descriptions');
+        const fallbackDescriptions = generateFallbackDescriptions(role, company);
+        setAIGeneratedDescriptions(fallbackDescriptions);
+        return;
+      }
+      const text = data.response;
 
-      console.log("AI Work Experience Response:", responseText);
+      console.log("AI Work Experience Response:", text);
 
       // Parse the text response
-      const parsedDescriptions = parseTextResponse(responseText);
+      const parsedDescriptions = parseTextResponse(text);
       setAIGeneratedDescriptions(parsedDescriptions);
     } catch (error) {
       console.error("Error generating AI work experience description:", error);
+      toast.error('Failed to generate descriptions');
       // Fallback descriptions based on role if AI fails
       const fallbackDescriptions = generateFallbackDescriptions(role, company);
       setAIGeneratedDescriptions(fallbackDescriptions);
@@ -63,10 +84,18 @@ const WorkExperienceAI = ({
             line.toLowerCase().includes("level:")
           );
           const level = levelLine ? levelLine.split(":")[1].trim() : "general";
-          const description = lines
+          let description = lines
             .filter((line) => !line.toLowerCase().includes("level:"))
             .join("\n")
             .trim();
+
+          // Deduplicate bullets: limit to 4 unique bullets
+          const bulletLines = description
+            .split("\n")
+            .map((line) => line.replace(/^[•\-\*]\s*/, "").trim())
+            .filter(Boolean);
+          const uniqueBullets = [...new Set(bulletLines)].slice(0, 4);
+          description = uniqueBullets.map((bullet) => `• ${bullet}`).join("\n");
 
           return {
             level: level,
@@ -175,17 +204,33 @@ const WorkExperienceAI = ({
         <h4 className="text-md font-semibold text-gray-800">
           AI Description Suggestions
         </h4>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            GenerateDescriptionFromAI();
-          }}
-          disabled={loading}
-          className="border-blue-500 text-blue-600 bg-transparent border flex gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-blue-50 disabled:opacity-50 transition-colors"
-        >
-          <BrainIcon className="h-4 w-4 flex-shrink-0" />
-          {loading ? "Generating..." : "Generate Descriptions"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              GenerateDescriptionFromAI(false);
+            }}
+            disabled={loading}
+            className="border-blue-500 text-blue-600 bg-transparent border flex gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-blue-50 disabled:opacity-50 transition-colors"
+          >
+            <BrainIcon className="h-4 w-4 flex-shrink-0" />
+            {loading ? "Generating..." : "Generate Descriptions"}
+          </button>
+
+          {aiGeneratedDescriptions.length > 0 && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                GenerateDescriptionFromAI(true);
+              }}
+              disabled={loading}
+              className="border-orange-500 text-orange-600 bg-transparent border flex gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-orange-50 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4 flex-shrink-0" />
+              {loading ? "Regenerating..." : "Regenerate"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Role Required Error */}

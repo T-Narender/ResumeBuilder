@@ -1,6 +1,9 @@
 import Resume from "../models/resumeModel.js";
 import fs from "fs";
 import path from "path";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const { PDFParse } = require("pdf-parse");
 
 // Create new resume
 export const createResume = async (req, res) => {
@@ -49,8 +52,9 @@ export const createResume = async (req, res) => {
             ],
             projects: [
                 {
-                    title: '',
-                    description: '',
+                    name: '',
+                    techStack: [],
+                    bullets: [],
                     github: '',
                     liveDemo: '',
                 },
@@ -182,3 +186,39 @@ export const deleteResume = async (req, res) => {
         });
     }
 };
+
+export const extractResumeText = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        message: 'No PDF file uploaded' 
+      });
+    }
+
+    const uint8 = new Uint8Array(req.file.buffer);
+    const p = new PDFParse(uint8);
+    const data = await p.getText();
+    const extractedText = data.text ? data.text.trim() : '';
+    
+    if (!extractedText || extractedText.length < 100) {
+      return res.status(400).json({ 
+        message: 'PDF appears empty or is image-based. Please use a text-based PDF.' 
+      });
+    }
+
+    console.log(
+      '[PDF EXTRACT] Text extracted, length:', 
+      extractedText.length
+    );
+
+    res.status(200).json({ 
+      resumeText: extractedText 
+    });
+
+  } catch (error) {
+    console.error('[PDF EXTRACT ERROR]', error.message);
+    res.status(500).json({ 
+      message: 'Failed to extract PDF text' 
+    });
+  }
+};

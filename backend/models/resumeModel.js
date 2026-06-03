@@ -61,8 +61,9 @@ const resumeSchema = new mongoose.Schema({
     }
   }],
   projects: [{
-    title: { type: String, default: "" },
-    description: { type: String, default: "" },
+    name: { type: String, default: "" },
+    techStack: [{ type: String, default: "" }],
+    bullets: [{ type: String, default: "" }],
     github: { type: String, default: "" },
     liveDemo: { type: String, default: "" }
   }],

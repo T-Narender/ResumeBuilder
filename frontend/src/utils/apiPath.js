@@ -38,9 +38,21 @@ export const API_PATHS = {
     UPDATE: (id) => `/api/resumes/${id}`, 
     DELETE: (id) => `/api/resumes/${id}`, 
     UPLOAD_IMAGES: (id) => `/api/resumes/${id}/upload-images`,
+    EXTRACT_TEXT: '/api/resumes/extract-text',
   },
   image: {
     UPLOAD_IMAGE: `/api/auth/upload-image`,
+  },
+  AI: {
+    GENERATE: '/api/ai/generate',
+    IMPROVE_BULLET: '/api/ai/improve-bullet',
+    SKILL_GAP: '/api/ai/skill-gap',
+    INTERVIEW: {
+      START: '/api/ai/interview/start',
+      EVALUATE: '/api/ai/interview/evaluate',
+      EVALUATE_SESSION: '/api/ai/interview/evaluate-session',
+      SAVE: '/api/ai/interview/save'
+    }
   }
 };
 

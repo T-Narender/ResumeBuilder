@@ -17,6 +17,7 @@ import {
 import Summary from "./Summary";
 import WorkExperienceAI from "./WorkExperienceAI";
 import ProjectAI from "./ProjectAI"; // Add this import
+import BulletInput from "./BulletInput";
 
 // AdditionalInfoForm Component
 export const AdditionalInfoForm = ({
@@ -374,17 +375,57 @@ export const ProfileInfoForm = ({ profileData, updateSection }) => {
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-bold text-slate-700 mb-2  text-left w-full">
-              Summary
-            </label>
+            <div className="flex justify-between items-end mb-2">
+              <label className="block text-sm font-bold text-slate-700 text-left">
+                Summary
+              </label>
+              {profileData.summary && (
+                <span
+                  className={`text-xs font-medium ${
+                    profileData.summary
+                      .trim()
+                      .split(/\s+/)
+                      .filter((w) => w.length > 0).length > 60
+                      ? "text-red-500 font-bold"
+                      : "text-slate-500"
+                  }`}
+                >
+                  {
+                    profileData.summary
+                      .trim()
+                      .split(/\s+/)
+                      .filter((w) => w.length > 0).length
+                  }{" "}
+                  / 60 words
+                </span>
+              )}
+            </div>
             <textarea
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-800 font-medium bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-300 transition text-left"
+              className={`w-full rounded-xl border px-4 py-3 text-gray-800 font-medium bg-gray-50 focus:outline-none focus:ring-2 transition text-left ${
+                profileData.summary &&
+                profileData.summary
+                  .trim()
+                  .split(/\s+/)
+                  .filter((w) => w.length > 0).length > 60
+                  ? "border-red-300 focus:ring-red-200"
+                  : "border-gray-200 focus:ring-violet-300"
+              }`}
               dir="ltr"
               rows={4}
               placeholder="Short introduction about yourself"
               value={profileData.summary || ""}
               onChange={({ target }) => updateSection("summary", target.value)}
             />
+            {profileData.summary &&
+              profileData.summary
+                .trim()
+                .split(/\s+/)
+                .filter((w) => w.length > 0).length > 60 && (
+                <p className="text-red-500 text-xs mt-1 text-left">
+                  ⚠️ Recruiters read summaries in under 10 seconds. Keep it
+                  under 60 words.
+                </p>
+              )}
           </div>
         </div>
       </div>
@@ -408,11 +449,33 @@ export const ProjectDetailForm = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left w-full">
               <div className="md:col-span-2">
                 <Input
-                  label="Project Title"
-                  placeholder="Portfolio Website"
-                  value={project.title || ""}
+                  label="Project Name"
+                  placeholder="AIResume Builder"
+                  value={project.name || ""}
                   onChange={({ target }) =>
-                    updateArrayItem(index, "title", target.value)
+                    updateArrayItem(index, "name", target.value)
+                  }
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-slate-700 mb-3 text-left w-full">
+                  Tech Stack
+                </label>
+                <textarea
+                  className={projectDetailStyles.textarea}
+                  rows={2}
+                  placeholder="React, Node.js, OpenAI API, MongoDB, Tailwind CSS"
+                  value={(project.techStack || []).join(", ")}
+                  onChange={({ target }) =>
+                    updateArrayItem(
+                      index,
+                      "techStack",
+                      target.value
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter(Boolean),
+                    )
                   }
                 />
               </div>
@@ -440,28 +503,65 @@ export const ProjectDetailForm = ({
             <ProjectAI
               project={project}
               projectIndex={index}
-              onDescriptionSelect={(description) =>
-                updateArrayItem(index, "description", description)
-              }
+              onProjectDataSelect={(projectData) => {
+                updateArrayItem(index, "name", projectData.name || "");
+                updateArrayItem(
+                  index,
+                  "techStack",
+                  projectData.techStack || [],
+                );
+                updateArrayItem(index, "bullets", projectData.bullets || []);
+                updateArrayItem(index, "github", projectData.github || "");
+                updateArrayItem(index, "liveDemo", projectData.liveDemo || "");
+              }}
             />
 
             <div className="mt-6">
               <label className="block text-sm font-bold text-slate-700 mb-3 text-left w-full">
-                Description (Bullet Points)
+                Bullets
               </label>
-              <textarea
-                placeholder="Enter bullet points, one per line. Example:&#10;Developed responsive UI using React & Tailwind&#10;Integrated MongoDB backend&#10;Deployed on Vercel with CI/CD"
-                className={projectDetailStyles.textarea}
-                rows={5}
-                value={project.description || ""}
-                onChange={({ target }) =>
-                  updateArrayItem(index, "description", target.value)
-                }
-              />
-              <p className="text-xs text-slate-500 mt-2">
-                💡 Tip: Press Enter after each point for bullet formatting
-              </p>
+
+              <div className="space-y-2">
+                {(project.bullets && project.bullets.length > 0 ? project.bullets : [""])
+                  .map((bullet, bulletIndex) => (
+                    <BulletInput
+                      key={bulletIndex}
+                      value={bullet}
+                      jobTitle={project.name || "Software Developer"}
+                      onChange={(newValue) => {
+                        const newBullets = [...(project.bullets || [])];
+                        while (newBullets.length <= bulletIndex) {
+                          newBullets.push("");
+                        }
+                        newBullets[bulletIndex] = newValue;
+                        updateArrayItem(index, "bullets", newBullets);
+                      }}
+                      onRemove={
+                        (project.bullets || []).length > 1
+                          ? () => {
+                              const newBullets = [...(project.bullets || [])];
+                              newBullets.splice(bulletIndex, 1);
+                              updateArrayItem(index, "bullets", newBullets);
+                            }
+                          : null
+                      }
+                    />
+                  ))}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const newBullets = [...(project.bullets || [])];
+                    newBullets.push("");
+                    updateArrayItem(index, "bullets", newBullets);
+                  }}
+                  className="mt-2 flex items-center gap-1 text-sm text-violet-600 hover:text-violet-800 font-medium px-3 py-1.5 bg-violet-50 hover:bg-violet-100 rounded-md transition-colors"
+                >
+                  <Plus size={14} /> Add Bullet Point
+                </button>
+              </div>
             </div>
+
 
             {projectInfo.length > 1 && (
               <button
@@ -480,8 +580,9 @@ export const ProjectDetailForm = ({
           className={`${commonStyles.addButtonBase} ${projectDetailStyles.addButton}`}
           onClick={() =>
             addArrayItem({
-              title: "",
-              description: "",
+              name: "",
+              techStack: [],
+              bullets: [],
               github: "",
               liveDemo: "",
             })
@@ -655,18 +756,92 @@ export const WorkExperienceForm = ({
 
             <div className="mt-6">
               <label className="block text-sm font-bold text-slate-700 mb-3 text-left w-full">
-                Description
+                Description (Bullet Points)
               </label>
-              <textarea
-                placeholder="What did you do in this role? (Use AI suggestions above or write your own)"
-                className={workExperienceStyles.textarea}
-                rows={4} // Increased rows for better visibility
-                value={experience.description || ""}
-                onChange={({ target }) =>
-                  updateArrayItem(index, "description", target.value)
-                }
-                style={{ whiteSpace: "pre-wrap" }} // Preserve line breaks
-              />
+
+              {experience.description &&
+                !experience.description.includes("\n") &&
+                experience.description.length > 80 && (
+                  <div className="mb-3 p-3 bg-indigo-50 border border-indigo-200 rounded-lg flex items-start gap-2">
+                    <span className="text-xl">💡</span>
+                    <div>
+                      <p className="text-sm text-indigo-800 font-medium">
+                        Convert to ATS bullet points?
+                      </p>
+                      <p className="text-xs text-indigo-600 mb-2">
+                        ATS systems and recruiters prefer bulleted lists over
+                        long paragraphs.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // Simple naive split by sentences. In real app, we might use AI.
+                          const newDesc = experience.description
+                            .split(/(?<=[.?!])\s+/)
+                            .map((sentence) => sentence.trim())
+                            .filter((s) => s.length > 0)
+                            .map((s) => s.replace(/^[•\-\*]\s*/, ""))
+                            .join("\n");
+                          updateArrayItem(index, "description", newDesc);
+                        }}
+                        className="px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded hover:bg-indigo-700 transition-colors"
+                      >
+                        Convert to Bullets
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              <div className="space-y-2">
+                {(experience.description || "")
+                  .split("\n")
+                  .map((bullet, bulletIndex) => (
+                    <BulletInput
+                      key={bulletIndex}
+                      value={bullet}
+                      jobTitle={experience.role}
+                      onChange={(newValue) => {
+                        const bullets = (experience.description || "").split(
+                          "\n",
+                        );
+                        bullets[bulletIndex] = newValue;
+                        updateArrayItem(
+                          index,
+                          "description",
+                          bullets.join("\n"),
+                        );
+                      }}
+                      onRemove={
+                        (experience.description || "").split("\n").length > 1
+                          ? () => {
+                              const bullets = (
+                                experience.description || ""
+                              ).split("\n");
+                              bullets.splice(bulletIndex, 1);
+                              updateArrayItem(
+                                index,
+                                "description",
+                                bullets.join("\n"),
+                              );
+                            }
+                          : null
+                      }
+                    />
+                  ))}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const currentDesc = experience.description || "";
+                    const newDesc = currentDesc ? currentDesc + "\n" : "";
+                    updateArrayItem(index, "description", newDesc);
+                  }}
+                  className="mt-2 flex items-center gap-1 text-sm text-violet-600 hover:text-violet-800 font-medium px-3 py-1.5 bg-violet-50 hover:bg-violet-100 rounded-md transition-colors"
+                >
+                  <Plus size={14} /> Add Bullet Point
+                </button>
+              </div>
             </div>
 
             {workExperience.length > 1 && (

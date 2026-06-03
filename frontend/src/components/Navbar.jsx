@@ -40,6 +40,19 @@ const Navbar = () => {
 
         {/* Profile Info Card (right side) */}
         <div className="flex items-center h-full">
+          {user && (
+            <div className="hidden md:flex items-center gap-6 mr-6 h-full">
+              <Link to="/dashboard" className="text-sm font-medium text-gray-700 hover:text-violet-600 transition-colors h-full flex items-center">
+                Dashboard
+              </Link>
+              <Link to="/skill-gap" className="text-sm font-medium text-gray-700 hover:text-violet-600 transition-colors h-full flex items-center">
+                Skill Gap
+              </Link>
+              <Link to="/interview-prep" className="text-sm font-medium text-gray-700 hover:text-violet-600 transition-colors h-full flex items-center">
+                Mock Interview
+              </Link>
+            </div>
+          )}
           <ProfileInfoCard />
         </div>
 

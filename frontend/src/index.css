@@ -19,6 +19,12 @@
     }
 }
 
+/* Hide default browser password reveal and clear buttons */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none !important;
+}
+
 /* custom scrollbar styling */
 .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
@@ -109,14 +115,25 @@
     }
 
     .resume-container,
-    .resume-container * {
+    .resume-container *,
+    .ats-resume-container,
+    .ats-resume-container * {
         visibility: visible;
     }
 
-    .resume-container {
+    .resume-container,
+    .ats-resume-container {
         position: absolute;
         left: 0;
         top: 0;
         width: 210mm !important;
+        margin: 0 !important;
+        padding: 40px !important;
+        box-shadow: none !important;
+    }
+
+    .no-print, .no-print * {
+        display: none !important;
+        visibility: hidden !important;
     }
 }

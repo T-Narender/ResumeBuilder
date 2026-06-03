@@ -1,0 +1,215 @@
+/* 
+ * Backup of premium-ats.css
+ * Full original content copied before deletion.
+ */
+
+ :root {
+	/* Typography Scale */
+	--text-name: 30px;
+	--text-role: 14px;
+	--text-section: 14px;
+	--text-title: 13px;
+	--text-body: 11.5px;
+	--text-meta: 11px;
+  
+	/* Font Weights */
+	--weight-name: 700;
+	--weight-section: 700; /* Bold for headers */
+	--weight-title: 700; /* Bold */
+	--weight-body: 400;
+
+	/* Spacing Rhythm Grid */
+	--space-bullets: 6px; /* 6px between bullets */
+	--space-xs: 4px;
+	--space-sm: 8px;
+	--space-md: 16px; /* 16px between entries */
+	--space-lg: 24px; /* 24px between sections */
+	--space-xl: 32px;
+
+	/* Colors */
+	--color-text-main: #111827; 
+	--color-text-muted: #6b7280; /* Muted gray */
+	--color-border: #e0e0e0; /* Light gray horizontal rule */
+  
+	/* Line Heights */
+	--lh-body: 1.5;
+	--lh-heading: 1.2;
+}
+
+@page {
+	size: A4;
+	margin: 0;
+}
+
+body, html {
+	margin: 0;
+	padding: 0;
+	background: white !important;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+	font-family: "Inter", "Helvetica", "Arial", sans-serif !important;
+	color: var(--color-text-main);
+}
+
+/* Master Container */
+.ats-resume-container {
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 auto !important;
+	padding: 40px 50px !important; /* Perfect screen preview matching PDF */
+	box-sizing: border-box !important;
+}
+
+/* Base Typographic Reset */
+h1, h2, h3, h4, h5, h6, p, li, span, div {
+	margin: 0;
+	padding: 0;
+	line-height: var(--lh-body);
+}
+
+/* -------------------------------------
+ * SECTIONS
+ * ------------------------------------- */
+.ats-section {
+	margin-bottom: var(--space-lg) !important; /* 24px between sections */
+	page-break-inside: avoid;
+	break-inside: avoid;
+}
+
+.ats-section-title {
+	font-size: var(--text-section) !important;
+	font-weight: var(--weight-section) !important;
+	text-transform: uppercase !important;
+	border-bottom: 1px solid var(--color-border) !important;
+	padding-bottom: 8px !important; /* 8px gap between text and rule */
+	margin-top: 20px !important; /* 20px margin above each section header */
+	margin-bottom: 12px !important;
+	color: inherit;
+}
+.ats-section:first-child .ats-section-title {
+	margin-top: 0 !important;
+}
+
+/* -------------------------------------
+ * ENTRIES (Experience, Education, Projects)
+ * ------------------------------------- */
+.ats-entry {
+	margin-bottom: var(--space-md) !important; /* 16px between entries */
+	page-break-inside: avoid;
+	break-inside: avoid;
+}
+
+.ats-entry-header {
+	display: flex !important;
+	justify-content: space-between !important;
+	align-items: baseline !important;
+	margin-bottom: 2px !important;
+}
+
+.ats-entry-title {
+	font-size: var(--text-title) !important;
+	font-weight: var(--weight-title) !important;
+	color: var(--color-text-main) !important;
+}
+
+.ats-entry-date {
+	font-size: var(--text-meta) !important;
+	color: var(--color-text-main) !important; /* Darker for alignment consistency */
+	white-space: nowrap !important;
+}
+
+.ats-entry-subtitle {
+	font-size: var(--text-body) !important;
+	font-weight: var(--weight-body) !important;
+	color: var(--color-text-main) !important;
+	margin-bottom: var(--space-xs) !important;
+}
+
+.ats-entry-techstack {
+	font-size: var(--text-meta) !important;
+	font-style: italic !important;
+	color: var(--color-text-muted) !important;
+	margin-bottom: 8px !important;
+	padding-bottom: 6px !important;
+	border-bottom: 1px solid #f3f4f6 !important; /* Subtle separator for projects */
+}
+
+/* -------------------------------------
+ * LISTS (Bullets)
+ * ------------------------------------- */
+.ats-list {
+	padding-left: 16px !important; /* 16px exact indent from left margin */
+	margin: 0 !important;
+	list-style-type: disc !important;
+}
+
+.ats-list li {
+	font-size: var(--text-body) !important;
+	color: var(--color-text-main) !important;
+	margin-bottom: var(--space-bullets) !important; /* 6px gap */
+	page-break-inside: avoid;
+	break-inside: avoid;
+}
+.ats-list li::marker {
+	color: #4b5563 !important; /* Dark gray disc marker */
+}
+
+/* -------------------------------------
+ * HEADER
+ * ------------------------------------- */
+.ats-header {
+	text-align: center !important;
+	margin-bottom: var(--space-xl) !important;
+}
+
+.ats-name {
+	font-size: var(--text-name) !important;
+	font-weight: var(--weight-name) !important;
+	letter-spacing: -0.02em !important;
+	line-height: var(--lh-heading) !important;
+	margin-bottom: var(--space-xs) !important;
+	color: var(--color-text-main) !important;
+}
+
+.ats-role {
+	font-size: var(--text-role) !important;
+	font-weight: var(--weight-body) !important;
+	color: var(--color-text-muted) !important;
+	margin-bottom: 12px !important;
+}
+
+.ats-contact-bar {
+	display: flex !important;
+	flex-wrap: nowrap !important; /* Never wrap */
+	justify-content: center !important;
+	align-items: center !important;
+	gap: 16px !important; /* 16px exact gap */
+	font-size: var(--text-meta) !important;
+	color: var(--color-text-main) !important;
+}
+
+.ats-contact-separator {
+	color: var(--color-text-muted) !important;
+	font-size: 14px !important;
+	line-height: 1 !important;
+}
+
+/* -------------------------------------
+ * UTILITIES
+ * ------------------------------------- */
+.ats-text {
+	font-size: var(--text-body) !important;
+	color: var(--color-text-main) !important;
+}
+
+a {
+	color: inherit !important;
+	text-decoration: none !important;
+}
+.ats-resume-container a {
+	text-decoration: none !important;
+}
+
+.no-print {
+	display: none !important;
+}

@@ -7,6 +7,8 @@ import Dashboard from "./pages/Dashboard";
 import EditResume from "./components/EditResume";
 import Login from "./components/Login";
 import SignUp from "./components/SignUp";
+import SkillGap from "./pages/SkillGap";
+import InterviewPrep from "./pages/InterviewPrep";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -110,6 +112,15 @@ function App() {
                 <EditResume />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+            path="/skill-gap"
+            element={<SkillGap />}
+          />
+          <Route
+            path="/interview-prep"
+            element={<InterviewPrep />}
           />
 
           {/* Catch all route - redirect to home */}

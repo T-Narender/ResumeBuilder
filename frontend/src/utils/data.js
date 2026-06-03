@@ -6,40 +6,68 @@ import Resume5 from "../assets/Resume5.jpeg"
 
 export const resumeTemplates = [
     {
+        id: "modern",
+        name: "ATS Modern",
+        description: "ATS-friendly modern design with balanced spacing.",
+        thumbnailImg: Resume1,
+        colorPaletteCode: "themeOne"
+    },
+    {
+        id: "minimal",
+        name: "ATS Minimal",
+        description: "Ultra-clean ATS design focused on content.",
+        thumbnailImg: Resume2,
+        colorPaletteCode: "themeTwo"
+    },
+    {
+        id: "classic",
+        name: "ATS Classic",
+        description: "Traditional resume structure optimized for ATS.",
+        thumbnailImg: Resume3,
+        colorPaletteCode: "themeThree"
+    },
+    {
+        id: "student",
+        name: "ATS Student",
+        description: "Ideal for freshers with compact ATS formatting.",
+        thumbnailImg: Resume4,
+        colorPaletteCode: "themeOne"
+    },
+    {
         id: "01",
+        name: "Legacy Template 1",
+        description: "Original visual template.",
         thumbnailImg: Resume1,
         colorPaletteCode: "themeOne"
     },
     {
         id: "02",
+        name: "Legacy Template 2",
+        description: "Original visual template.",
         thumbnailImg: Resume2,
         colorPaletteCode: "themeTwo"
     },
     {
         id: "03",
+        name: "Legacy Template 3",
+        description: "Original visual template.",
         thumbnailImg: Resume3,
         colorPaletteCode: "themeThree"
     },
     {
         id: "04",
+        name: "Legacy Template 4",
+        description: "Original visual template.",
         thumbnailImg: Resume4,
         colorPaletteCode:"themeThree"
     },
     {
         id: "05",
+        name: "Legacy Template 5",
+        description: "Original visual template.",
         thumbnailImg: Resume5,
         colorPaletteCode: "themeTwo"
     }
-    // {
-    //     id: "05",
-    //     thumbnailImg: Resume2,
-    //     colorPaletteCode: "themeFive"
-    // },
-    // {
-    //     id: "06",
-    //     thumbnailImg: Resume3,
-    //     colorPaletteCode: "themeSix"
-    // }
 ]
 
 export const DUMMY_RESUME_DATA = {

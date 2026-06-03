@@ -32,12 +32,13 @@ const UserProvider = ({ children }) => {
     fetchUser();
   }, [user]);
 
+  // Function to update user data and token in localStorage and state.This is used after login or profile update.This function ensures that both the user state and the token in localStorage are kept in sync.
   const updateUser = (userData) => {
     setUser(userData);
     localStorage.setItem("token", userData.token);
     setLoading(false);
   };
-
+  //This function is called when the user logs in successfully.It updates the user state with the provided userData and stores the authentication token in localStorage.It also sets loading to false to indicate that the user data has been loaded.
   const login = (userData, token) => {
     setUser(userData);
     localStorage.setItem("token", token);

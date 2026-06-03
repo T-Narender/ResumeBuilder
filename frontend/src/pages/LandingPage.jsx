@@ -12,6 +12,9 @@ import {
   Brain,
   FileText,
   Sparkles,
+  ListPlus,
+  LineChart,
+  MessageSquare,
 } from "lucide-react";
 import { landingPageStyles } from "../assets/dummystyle";
 import { useUser } from "../context/UserContext";
@@ -219,28 +222,26 @@ const LandingPage = () => {
                   bg: landingPageStyles.featureCardOrange,
                 },
                 {
-                  icon: <Zap className={landingPageStyles.featureIcon} />,
-                  title: "Lightning Fast Builder",
+                  icon: <ListPlus className={landingPageStyles.featureIcon} />,
+                  title: "Bullet Point Improver",
                   description:
-                    "Create, edit, and export AI-enhanced resumes in minutes with a smooth and intuitive interface.",
+                    "Instantly elevate your resume bullet points to highlight achievements and quantify your impact.",
                   gradient: landingPageStyles.featureIconViolet,
                   bg: landingPageStyles.featureCardViolet,
                 },
                 {
-                  icon: (
-                    <LayoutTemplate className={landingPageStyles.featureIcon} />
-                  ),
-                  title: "Modern Templates",
+                  icon: <LineChart className={landingPageStyles.featureIcon} />,
+                  title: "Skill Gap Analyzer",
                   description:
-                    "Choose from elegant, ATS-optimized templates and let AI adapt your content perfectly.",
+                    "Compare your resume against job descriptions to identify missing skills and get personalized recommendations.",
                   gradient: landingPageStyles.featureIconFuchsia,
                   bg: landingPageStyles.featureCardFuchsia,
                 },
                 {
-                  icon: <Download className={landingPageStyles.featureIcon} />,
-                  title: "Instant PDF Export",
+                  icon: <MessageSquare className={landingPageStyles.featureIcon} />,
+                  title: "AI Mock Interview",
                   description:
-                    "Download clean, ready-to-send PDFs instantly — optimized for recruiters and job portals.",
+                    "Practice answering tailored interview questions generated from your resume and target job role.",
                   gradient: landingPageStyles.featureIconOrange,
                   bg: landingPageStyles.featureCardOrange,
                 },

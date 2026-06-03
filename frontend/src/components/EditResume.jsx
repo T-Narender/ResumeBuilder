@@ -23,6 +23,7 @@ import {
 import DashboardLayout from "./DashboardLayout";
 import { TitleInput } from "./Inputs";
 import { fixTailwindColors } from "../utils/color";
+import { generateTruePDF } from "../utils/generateTruePDF";
 import StepProgress from "./StepProgress";
 import { ProfileInfoForm } from "./Forms";
 import { ContactInfoForm } from "./Forms";
@@ -37,6 +38,7 @@ import { CertificationInfoForm } from "./Forms";
 import { AdditionalInfoForm } from "./Forms";
 import html2canvas from "html2canvas";
 import "./A4.css";
+import { normalizeResumeData } from "../utils/normalizeResumeData";
 
 //Resize observer hook
 const useResizeObserver = () => {
@@ -111,8 +113,9 @@ const EditResume = () => {
     ],
     projects: [
       {
-        title: "",
-        description: "",
+        name: "",
+        techStack: [],
+        bullets: [],
         github: "",
         liveDemo: "",
       },
@@ -177,9 +180,10 @@ const EditResume = () => {
 
     // Projects
     resumeData.projects.forEach((project) => {
-      totalFields += 4;
-      if (project.title) completedFields++;
-      if (project.description) completedFields++;
+      totalFields += 5;
+      if (project.name) completedFields++;
+      if (project.techStack?.length) completedFields++;
+      if (project.bullets?.length) completedFields++;
       if (project.github) completedFields++;
       if (project.liveDemo) completedFields++;
     });
@@ -202,7 +206,7 @@ const EditResume = () => {
     // Interests
     totalFields += resumeData.interests.length;
     completedFields += resumeData.interests.filter(
-      (i) => i.trim() !== ""
+      (i) => i.trim() !== "",
     ).length;
 
     const percentage = Math.round((completedFields / totalFields) * 100);
@@ -213,6 +217,20 @@ const EditResume = () => {
   useEffect(() => {
     calculateCompletion();
   }, [resumeData]);
+
+  const handleTruePDFExport = async () => {
+    setIsDownloading(true);
+    try {
+      await generateTruePDF(resumeData?.title || "Resume");
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 3000);
+      setOpenPreviewModal(false);
+    } catch (error) {
+      toast.error("Failed to generate PDF. Please ensure backend is running.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   // Alternative download method using html2canvas and jsPDF (single-page, improved quality, black text, preserve links)
   const downloadWithCanvas = async () => {
@@ -298,8 +316,8 @@ const EditResume = () => {
             new Promise((res) => {
               if (img.complete) return res();
               img.onload = img.onerror = res;
-            })
-        )
+            }),
+        ),
       );
 
       // Allow layout to settle
@@ -377,7 +395,7 @@ const EditResume = () => {
         finalImgWidthMm,
         finalImgHeightMm,
         "",
-        "FAST"
+        "FAST",
       );
 
       // Map anchors to PDF links (FIX for non-working links)
@@ -409,7 +427,7 @@ const EditResume = () => {
       }
 
       pdf.save(
-        `${(resumeData.title || "resume").replace(/[^a-z0-9-_\. ]/gi, "_")}.pdf`
+        `${(resumeData.title || "resume").replace(/[^a-z0-9-_\. ]/gi, "_")}.pdf`,
       );
 
       setDownloadSuccess(true);
@@ -453,7 +471,7 @@ const EditResume = () => {
               exp.role?.trim() ||
               exp.startDate ||
               exp.endDate ||
-              exp.description?.trim()
+              exp.description?.trim(),
           );
 
           filledExperiences.forEach(
@@ -464,9 +482,9 @@ const EditResume = () => {
                 errors.push(`Role is required in experience ${index + 1}`);
               if (!startDate || !endDate)
                 errors.push(
-                  `Start and End dates are required in experience ${index + 1}`
+                  `Start and End dates are required in experience ${index + 1}`,
                 );
-            }
+            },
           );
         }
         break;
@@ -480,9 +498,9 @@ const EditResume = () => {
               errors.push(`Institution is required in education ${index + 1}`);
             if (!startDate || !endDate)
               errors.push(
-                `Start and End dates are required in education ${index + 1}`
+                `Start and End dates are required in education ${index + 1}`,
               );
-          }
+          },
         );
         break;
 
@@ -492,19 +510,19 @@ const EditResume = () => {
             errors.push(`Skill name is required in skill ${index + 1}`);
           if (progress < 1 || progress > 100)
             errors.push(
-              `Skill progress must be between 1 and 100 in skill ${index + 1}`
+              `Skill progress must be between 1 and 100 in skill ${index + 1}`,
             );
         });
         break;
 
       case "projects":
-        resumeData.projects.forEach(({ title, description }, index) => {
-          if (!title.trim())
-            errors.push(`Project Title is required in project ${index + 1}`);
-          if (!description.trim())
-            errors.push(
-              `Project description is required in project ${index + 1}`
-            );
+        resumeData.projects.forEach(({ name, techStack, bullets }, index) => {
+          if (!name?.trim())
+            errors.push(`Project Name is required in project ${index + 1}`);
+          if (!Array.isArray(techStack) || techStack.length === 0)
+            errors.push(`Tech stack is required in project ${index + 1}`);
+          if (!Array.isArray(bullets) || bullets.length === 0)
+            errors.push(`Project bullets are required in project ${index + 1}`);
         });
         break;
 
@@ -512,7 +530,7 @@ const EditResume = () => {
         resumeData.certifications.forEach(({ title, issuer }, index) => {
           if (!title.trim())
             errors.push(
-              `Certification Title is required in certification ${index + 1}`
+              `Certification Title is required in certification ${index + 1}`,
             );
           if (!issuer.trim())
             errors.push(`Issuer is required in certification ${index + 1}`);
@@ -760,18 +778,21 @@ const EditResume = () => {
   const fetchResumeDetailsById = async () => {
     try {
       const response = await axiosInstance.get(
-        API_PATHS.RESUME.GET_BY_ID(resumeId)
+        API_PATHS.RESUME.GET_BY_ID(resumeId),
       );
 
       if (response.data && response.data.profileInfo) {
         const resumeInfo = response.data;
+        const normalizedProjects =
+          normalizeResumeData({ projects: resumeInfo?.projects || [] })
+            ?.projects || [];
 
         const normalizedSkills = Array.isArray(resumeInfo?.skills)
           ? resumeInfo.skills.map((s) => ({
               ...s,
               category: s?.category || "Other Tools",
             }))
-          : prevState?.skills;
+          : [];
 
         setResumeData((prevState) => ({
           ...prevState,
@@ -782,7 +803,7 @@ const EditResume = () => {
           workExperience: resumeInfo?.workExperience || [],
           education: resumeInfo?.education || prevState?.education,
           skills: normalizedSkills,
-          projects: resumeInfo?.projects || prevState?.projects,
+          projects: normalizedProjects,
           certifications:
             resumeInfo?.certifications || prevState?.certifications,
           languages: resumeInfo?.languages || prevState?.languages,
@@ -821,7 +842,7 @@ const EditResume = () => {
       }
       const thumbnailFile = dataURLtoFile(
         thumbnailDataUrl,
-        `thumbnail-${resumeId}.png`
+        `thumbnail-${resumeId}.png`,
       );
 
       const formData = new FormData();
@@ -832,7 +853,7 @@ const EditResume = () => {
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
-        }
+        },
       );
 
       const { thumbnailLink } = uploadResponse.data;
@@ -886,16 +907,30 @@ const EditResume = () => {
     }
   };
 
-  const updateTheme = (theme) => {
-    setResumeData((prev) => ({
-      ...prev,
+  const updateTheme = async (theme) => {
+    const updatedThemeData = {
+      ...resumeData,
       template: {
         theme: theme,
         colorPalette: [],
       },
-    }));
+    };
+    
+    setResumeData(updatedThemeData);
+
+    try {
+      await axiosInstance.put(API_PATHS.RESUME.UPDATE(resumeId), {
+        ...updatedThemeData,
+        completion: completionPercentage,
+      });
+      toast.success("Theme applied successfully!");
+    } catch (err) {
+      console.error("Failed to persist theme choice:", err);
+      toast.error("Failed to save theme selection.");
+    }
   };
 
+  //here useEffect is used to fetch the resume details when the component mounts or when the resumeId changes. It checks if a resumeId is present and then calls the fetchResumeDetailsById function to retrieve the resume data from the server and populate the form for editing.
   useEffect(() => {
     if (resumeId) {
       fetchResumeDetailsById();
@@ -904,7 +939,7 @@ const EditResume = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gradient-to-br from-violet-50 to-white min-h-screen px-2 sm:px-6 pb-16">
+      <div className="bg-linear-to-br from-violet-50 to-white min-h-screen px-2 sm:px-6 pb-16">
         {/* Sticky Header */}
         <div className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-violet-100/50 shadow-sm mb-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 py-4">
@@ -1039,6 +1074,7 @@ const EditResume = () => {
             <ThemeSelector
               selectedTemplate={resumeData?.template?.theme}
               setSelectedTemplate={updateTheme}
+              resumeData={resumeData}
               onClose={() => setOpenThemeSelector(false)}
             />
           </div>
@@ -1054,8 +1090,8 @@ const EditResume = () => {
             isDownloading
               ? "Downloading..."
               : downloadSuccess
-              ? "Downloaded ✓"
-              : "Download PDF"
+                ? "Downloaded ✓"
+                : "Download ATS PDF"
           }
           actionBtnIcon={
             isDownloading ? (
@@ -1066,7 +1102,16 @@ const EditResume = () => {
               <Download size={16} />
             )
           }
-          onActionClick={downloadWithCanvas}
+          onActionClick={() => {
+            const atsThemes = ["minimal", "modern", "classic", "student"];
+            if (
+              atsThemes.includes(resumeData?.template?.theme?.toLowerCase())
+            ) {
+              handleTruePDFExport();
+            } else {
+              downloadWithCanvas();
+            }
+          }}
           actionBtnDisabled={isDownloading}
         >
           <div className="relative">
@@ -1103,13 +1148,24 @@ const EditResume = () => {
               </div>
             </div>
             {/* Alternative Download Button (now primary download) */}
-            <div className="text-center mt-4">
+            <div className="text-center mt-4 no-print">
               <button
-                onClick={downloadWithCanvas}
+                onClick={() => {
+                  const atsThemes = ["minimal", "modern", "classic", "student"];
+                  if (
+                    atsThemes.includes(
+                      resumeData?.template?.theme?.toLowerCase(),
+                    )
+                  ) {
+                    handleTruePDFExport();
+                  } else {
+                    downloadWithCanvas();
+                  }
+                }}
                 disabled={isDownloading}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                {isDownloading ? "Generating PDF..." : "Download PDF"}
+                {isDownloading ? "Generating PDF..." : "Download ATS PDF"}
               </button>
             </div>
           </div>

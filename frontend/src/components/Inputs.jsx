@@ -2,6 +2,11 @@ import React, { useRef, useState } from "react";
 import { inputStyles, photoSelectorStyles, titleInputStyles } from "../assets/dummystyle";
 import { Check, Edit, Eye, EyeOff } from "lucide-react";
 
+
+// This file contains reusable input components used across the application, such as text inputs, profile photo selector, and title input for resumes. These components are designed to be flexible and customizable, allowing them to be easily integrated into different parts of the app while maintaining a consistent look and feel.
+
+
+
 export const Input = ({
   value,
   onChange,

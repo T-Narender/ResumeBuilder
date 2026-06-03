@@ -6,6 +6,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import userRouter from "./routes/userRouter.js";
 import resumeRouter from "./routes/resumeRoutes.js";
+import aiRouter from "./routes/aiRoutes.js";
+import pdfRouter from "./routes/pdfRoutes.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -49,11 +51,14 @@ app.use(
 connectDB();
 
 // Middlewares
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Routes
 app.use('/api/auth', userRouter);
 app.use('/api/resumes', resumeRouter);
+app.use('/api/ai', aiRouter);
+app.use('/api/pdf', pdfRouter);
 
 app.use(
     '/uploads',
