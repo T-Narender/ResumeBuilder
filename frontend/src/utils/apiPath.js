@@ -37,12 +37,12 @@ export const API_PATHS = {
     GET_PROFILE: '/api/auth/profile',
   },
   RESUME: {
-    CREATE: '/api/resumes', 
+    CREATE: '/api/resumes',
     GET_ALL: '/api/resumes',
     GET_BY_ID: (id) => `/api/resumes/${id}`,
 
-    UPDATE: (id) => `/api/resumes/${id}`, 
-    DELETE: (id) => `/api/resumes/${id}`, 
+    UPDATE: (id) => `/api/resumes/${id}`,
+    DELETE: (id) => `/api/resumes/${id}`,
     UPLOAD_IMAGES: (id) => `/api/resumes/${id}/upload-images`,
     EXTRACT_TEXT: '/api/resumes/extract-text',
   },
