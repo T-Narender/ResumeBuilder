@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 const SkillGap = () => {
-  const { loading, analysisResult, analyzeGap } = useSkillGap();
+  const { loading, analysisResult, analyzeGap, resetAnalysis } = useSkillGap();
   const [resumes, setResumes] = useState([]);
   const [selectedResumeId, setSelectedResumeId] = useState("");
   const [jobDescription, setJobDescription] = useState("");
@@ -335,7 +335,10 @@ const SkillGap = () => {
 
             <div className="mt-12 text-center">
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  resetAnalysis();
+                  setJobDescription("");
+                }}
                 className="flex items-center gap-2 mx-auto text-violet-600 font-medium hover:text-violet-800 transition-colors bg-violet-50 px-6 py-3 rounded-full"
               >
                 <ChevronLeft size={20} /> Analyze Another Job

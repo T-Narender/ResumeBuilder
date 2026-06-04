@@ -43,6 +43,7 @@ export const useSkillGap = () => {
   return {
     loading,
     analysisResult,
-    analyzeGap
+    analyzeGap,
+    resetAnalysis: () => setAnalysisResult(null)
   };
 };
