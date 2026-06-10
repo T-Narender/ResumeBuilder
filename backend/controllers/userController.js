@@ -10,10 +10,11 @@ const generateToken = (userId) => {
 // Register user
 export const registerUser = async (req, res) => {
     const { name, email, password } = req.body;
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
     try {
         // Check if user exists
-        const userExists = await User.findOne({ email });
+        const userExists = await User.findOne({ email: normalizedEmail });
         if (userExists) {
             return res.status(400).json({ message: "User already exists" });
         }
@@ -28,15 +29,17 @@ export const registerUser = async (req, res) => {
         // Create user
         const user = await User.create({
             name,
-            email,
+            email: normalizedEmail,
             password: hashedPassword,
         });
         // await user.save();
 
         res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+            },
             token: generateToken(user._id),
         });
     } catch (error) {
@@ -48,9 +51,15 @@ export const registerUser = async (req, res) => {
 // Login user
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+
+    if (!normalizedEmail || !password) {
+        return res.status(400).json({ message: "Invalid credentials" });
+    }
+
     try {
         // Check if user exists
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
@@ -61,9 +70,11 @@ export const loginUser = async (req, res) => {
         }
         // Return user data and token
         res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+            },
             token: generateToken(user._id),
         });
     } catch (error) {

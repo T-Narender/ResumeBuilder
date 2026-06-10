@@ -20,11 +20,13 @@ const SignUp = ({ setCurrentPage }) => {
   const handleSignup = async (e) => {
     e.preventDefault();
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     if (!fullName.trim()) {
       setError("Please enter your full name");
       return;
     }
-    if (!validateEmail(email)) {
+    if (!validateEmail(normalizedEmail)) {
       setError("Please enter a valid email address");
       return;
     }
@@ -39,20 +41,20 @@ const SignUp = ({ setCurrentPage }) => {
     try {
       const response = await axiosInstance.post(API_PATHS.AUTH.REGISTER, {
         name: fullName,
-        email,
+        email: normalizedEmail,
         password,
       });
 
       const { token, user } = response.data;
       if (token) {
-        login(user, token);
+        login(user ?? { email: normalizedEmail, name: fullName.trim() }, token);
         navigate("/dashboard");
       }
     } catch (error) {
       console.error("Signup error:", error);
       setError(
         error.response?.data?.message ||
-          "Something went wrong. Please try again later."
+          "Something went wrong. Please try again later.",
       );
     } finally {
       setLoading(false);

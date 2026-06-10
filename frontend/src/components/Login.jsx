@@ -19,7 +19,9 @@ const Login = ({ setCurrentPage }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (!validateEmail(email)) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!validateEmail(normalizedEmail)) {
       setError("Please enter a valid email address");
       return;
     }
@@ -32,20 +34,20 @@ const Login = ({ setCurrentPage }) => {
 
     try {
       const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
-        email,
+        email: normalizedEmail,
         password,
       });
 
       const { token, user } = response.data;
       if (token) {
-        login(user, token);
+        login(user ?? { email: normalizedEmail }, token);
         navigate("/dashboard");
       }
     } catch (error) {
       console.error("Login error:", error);
       setError(
         error.response?.data?.message ||
-          "Something went wrong. Please try again"
+          "Something went wrong. Please try again",
       );
     } finally {
       setLoading(false);

@@ -1,4 +1,5 @@
  import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
 
 export const generatePDF = async (req, res) => {
   try {
@@ -8,9 +9,21 @@ export const generatePDF = async (req, res) => {
       return res.status(400).json({ message: "HTML content is required" });
     }
 
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // In production (Render), use sparticuz/chromium which includes the necessary system libraries.
+    // Locally, use the standard puppeteer executable.
+    const executablePath = isProduction 
+      ? await chromium.executablePath() 
+      : puppeteer.executablePath();
+
     const browser = await puppeteer.launch({
-      headless: "new",
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: isProduction ? chromium.headless : "new",
+      args: isProduction 
+        ? [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+        : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      defaultViewport: isProduction ? chromium.defaultViewport : null,
+      executablePath: executablePath,
     });
 
     const page = await browser.newPage();
