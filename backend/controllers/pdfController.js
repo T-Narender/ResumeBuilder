@@ -10,10 +10,12 @@ export const generatePDF = async (req, res) => {
       return res.status(400).json({ message: "HTML content is required" });
     }
 
-    // Only use sparticuz/chromium in actual production Linux environments (like Render).
-    // Local Windows/Mac environments should use the standard puppeteer executable even if NODE_ENV is set to production.
+    // Render does NOT automatically set NODE_ENV=production, but it does set RENDER=true.
+    // We want to use sparticuz in Render or any production Linux environment.
+    // Local Windows/Mac environments should use the standard puppeteer executable.
+    const isRender = process.env.RENDER === 'true';
     const isProduction = process.env.NODE_ENV === 'production';
-    const useSparticuz = isProduction && process.platform === 'linux';
+    const useSparticuz = process.platform === 'linux' && (isRender || isProduction);
     
     let browser;
     try {
