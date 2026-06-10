@@ -1,4 +1,5 @@
  import puppeteer from 'puppeteer';
+import puppeteerCore from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 
 export const generatePDF = async (req, res) => {
@@ -14,20 +15,35 @@ export const generatePDF = async (req, res) => {
     const isProduction = process.env.NODE_ENV === 'production';
     const useSparticuz = isProduction && process.platform === 'linux';
     
-    // In production (Render), use sparticuz/chromium which includes the necessary system libraries.
-    // Locally, use the standard puppeteer executable.
-    const executablePath = useSparticuz 
-      ? await chromium.executablePath() 
-      : puppeteer.executablePath();
-
-    const browser = await puppeteer.launch({
-      headless: useSparticuz ? chromium.headless : "new",
-      args: useSparticuz 
-        ? [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
-        : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      defaultViewport: useSparticuz ? chromium.defaultViewport : null,
-      executablePath: executablePath,
-    });
+    let browser;
+    try {
+      if (useSparticuz) {
+        console.log("Using Sparticuz Chromium...");
+        const executablePath = await chromium.executablePath();
+        console.log("Sparticuz Executable Path:", executablePath);
+        
+        browser = await puppeteerCore.launch({
+          args: chromium.args,
+          defaultViewport: chromium.defaultViewport,
+          executablePath: executablePath,
+          headless: chromium.headless,
+        });
+      } else {
+        console.log("Using Local Puppeteer...");
+        browser = await puppeteer.launch({
+          headless: "new",
+          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+          executablePath: puppeteer.executablePath(),
+        });
+      }
+    } catch (launchError) {
+      console.error("Failed to launch browser:", launchError);
+      return res.status(500).json({ 
+        message: "Failed to launch PDF browser", 
+        error: launchError.message,
+        stack: launchError.stack 
+      });
+    }
 
     const page = await browser.newPage();
 
