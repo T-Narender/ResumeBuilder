@@ -9,20 +9,23 @@ export const generatePDF = async (req, res) => {
       return res.status(400).json({ message: "HTML content is required" });
     }
 
+    // Only use sparticuz/chromium in actual production Linux environments (like Render).
+    // Local Windows/Mac environments should use the standard puppeteer executable even if NODE_ENV is set to production.
     const isProduction = process.env.NODE_ENV === 'production';
+    const useSparticuz = isProduction && process.platform === 'linux';
     
     // In production (Render), use sparticuz/chromium which includes the necessary system libraries.
     // Locally, use the standard puppeteer executable.
-    const executablePath = isProduction 
+    const executablePath = useSparticuz 
       ? await chromium.executablePath() 
       : puppeteer.executablePath();
 
     const browser = await puppeteer.launch({
-      headless: isProduction ? chromium.headless : "new",
-      args: isProduction 
+      headless: useSparticuz ? chromium.headless : "new",
+      args: useSparticuz 
         ? [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
         : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      defaultViewport: isProduction ? chromium.defaultViewport : null,
+      defaultViewport: useSparticuz ? chromium.defaultViewport : null,
       executablePath: executablePath,
     });
 
