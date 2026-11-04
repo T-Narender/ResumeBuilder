@@ -56,8 +56,8 @@ const resumeSchema = new mongoose.Schema({
     progress: { type: Number, default: 0, min: 0, max: 100 },
     category: {
       type: String,
-      default: "Other Tools",
-      enum: ["Programming Languages", "Frontend Technologies", "Backend Technologies", "Other Tools"]
+      default: "Tools",
+      trim: true
     }
   }],
   projects: [{
@@ -70,6 +70,11 @@ const resumeSchema = new mongoose.Schema({
   certifications: [{
     title: { type: String, default: "" },
     issuer: { type: String, default: "" },
+    year: { type: String, default: "" }
+  }],
+  achievements: [{
+    title: { type: String, default: "" },
+    description: { type: String, default: "" },
     year: { type: String, default: "" }
   }],
   languages: [{

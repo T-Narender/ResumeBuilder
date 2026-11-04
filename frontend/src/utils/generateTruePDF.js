@@ -1,6 +1,6 @@
 import axiosInstance from "./axiosInstance";
 
-export const generateTruePDF = async (resumeTitle = "Resume") => {
+export const generateTruePDF = async (resumeTitle = "Resume", expectedPageCount = null) => {
   try {
     // 1. Get the HTML of the resume container
     const container = document.querySelector('#ats-resume-container, .ats-resume-container');
@@ -28,7 +28,7 @@ export const generateTruePDF = async (resumeTitle = "Resume") => {
     const html = clone.outerHTML;
 
     // Send to backend for Puppeteer processing
-    const response = await axiosInstance.post('/api/pdf/generate', { html }, {
+    const response = await axiosInstance.post('/api/pdf/generate', { html, expectedPageCount }, {
       responseType: 'blob' // Must specify blob to handle binary PDF stream
     });
 

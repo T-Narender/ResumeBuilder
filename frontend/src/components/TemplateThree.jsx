@@ -318,7 +318,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
                 {projects.map((proj, idx) => (
                   <div key={idx} className="text-xs">
                     <div className="flex justify-between items-start">
-                      <h3 className="font-bold">{proj.title}</h3>
+                      <h3 className="font-bold text-[15px] text-black">{proj.title}</h3>
                       {proj.startDate && proj.endDate && (
                         <div className="text-right italic">
                           {formatYearMonth(proj.startDate)} –{" "}
@@ -353,7 +353,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
                         </a>
                       )}
                       {proj.technologies && (
-                        <span className="text-gray-600">
+                        <span className="font-semibold text-gray-900 text-xs">
                           <strong>Tech:</strong> {proj.technologies.join(", ")}
                         </span>
                       )}

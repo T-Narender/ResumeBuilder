@@ -6,9 +6,9 @@ const SummaryBlock = ({ summary, theme }) => {
 
   return (
     <section>
-      <SectionHeader title="Professional Summary" />
+      <SectionHeader title="Professional Summary" showDivider={false} />
       <p
-        style={{ margin: 0, fontSize: "12px", color: "#333", lineHeight: 1.5 }}
+        style={{ margin: 0, fontSize: "12px", color: "#333", lineHeight: 1.35 }}
       >
         {summary}
       </p>

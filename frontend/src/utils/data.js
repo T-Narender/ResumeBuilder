@@ -34,6 +34,13 @@ export const resumeTemplates = [
         colorPaletteCode: "themeOne"
     },
     {
+        id: "reference",
+        name: "Academic Reference",
+        description: "Centered serif header with compact black-and-white academic formatting.",
+        thumbnailImg: Resume3,
+        colorPaletteCode: "themeThree"
+    },
+    {
         id: "01",
         name: "Legacy Template 1",
         description: "Original visual template.",

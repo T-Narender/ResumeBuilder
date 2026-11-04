@@ -4,7 +4,7 @@ import chromium from '@sparticuz/chromium';
 
 export const generatePDF = async (req, res) => {
   try {
-    const { html } = req.body;
+    const { html, expectedPageCount } = req.body;
 
     if (!html) {
       return res.status(400).json({ message: "HTML content is required" });
@@ -84,8 +84,7 @@ export const generatePDF = async (req, res) => {
     });
     console.log('H1 font size in Puppeteer:', bodyFontSize);
 
-    // Generate the PDF with optimal print settings (no scale; let CSS control sizes)
-    let pdfBuffer = await page.pdf({
+    const pdfOptions = () => ({
       format: 'A4',
       printBackground: true,
       margin: {
@@ -96,34 +95,32 @@ export const generatePDF = async (req, res) => {
       }
     });
 
+    const getPageCount = (buffer) => {
+      const raw = Buffer.from(buffer).toString('latin1');
+      return (raw.match(/\/Type\s*\/Page\b/g) || []).length || 1;
+    };
+
+    let pdfBuffer = await page.pdf(pdfOptions());
+
     console.log('PDF generated');
 
-    // Lightweight page-count heuristic: count occurrences of '/Type /Page' with word boundary
-    let pageCount = 1;
     try {
-      const raw = Buffer.from(pdfBuffer).toString('latin1');
-      const matches = raw.match(/\/Type\s*\/Page\b/g) || [];
-      pageCount = matches.length;
+      let pageCount = getPageCount(pdfBuffer);
       console.log('PDF page count (heuristic):', pageCount);
+
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        Number.isInteger(expectedPageCount) &&
+        expectedPageCount !== pageCount
+      ) {
+        console.warn(
+          `Pagination mismatch: Preview: ${expectedPageCount} page(s), PDF: ${pageCount} page(s)`,
+        );
+      }
+
+      res.set('X-PDF-Page-Count', String(pageCount));
     } catch (err) {
       console.log('Unable to determine PDF page count:', err.message);
-    }
-
-    // Only if still 2 pages after spacing reduction, use scale: 0.95 (Never go below 0.95)
-    if (pageCount > 1) {
-      console.log('PDF is 2 pages (or more), regenerating with scale: 0.95...');
-      pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        scale: 0.95,
-        margin: {
-          top: '20px',
-          bottom: '20px',
-          left: '40px',
-          right: '40px'
-        }
-      });
-      console.log('PDF regenerated with scale 0.95');
     }
 
     await browser.close();

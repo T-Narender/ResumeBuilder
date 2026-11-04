@@ -82,9 +82,11 @@ const ThemeSelector = ({
           ref={resumeRef}
         >
           <RenderResume
+            key={`theme-preview-${selectedTemplateState.theme}`}
             templateId={selectedTemplateState?.theme || ""}
             resumeData={resumeData || DUMMY_RESUME_DATA}
             containerWidth={baseWidth}
+            previewTheme={selectedTemplateState.theme}
           />
         </div>
       </div>

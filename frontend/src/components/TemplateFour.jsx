@@ -262,7 +262,7 @@ const TemplateFour = ({ resumeData = {}, containerWidth }) => {
           <h2 className={sectionTitleClass}>Projects</h2>
           {projects.map((proj, idx) => (
             <div key={idx} className="mb-3">
-              <h3 className="font-semibold text-sm text-left" dir="ltr">
+              <h3 className="font-bold text-[15px] text-black text-left" dir="ltr">
                 {proj.title}
               </h3>
               <div

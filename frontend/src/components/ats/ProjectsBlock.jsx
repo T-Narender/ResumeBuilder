@@ -25,7 +25,7 @@ const ProjectsBlock = ({ projects, theme }) => {
       <SectionHeader title="Projects" />
       <div>
         {validProjects.map((project, index) => (
-          <div key={index} style={{ marginBottom: "14px" }}>
+          <div key={index} style={{ marginBottom: "9px" }}>
             <div
               style={{
                 display: "flex",
@@ -34,12 +34,17 @@ const ProjectsBlock = ({ projects, theme }) => {
               }}
             >
               <span
-                style={{ fontWeight: 600, fontSize: "13px", lineHeight: 1.5 }}
+                style={{
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  lineHeight: 1.3,
+                  color: "#111111",
+                }}
               >
                 {project.name}
               </span>
               <span
-                style={{ fontSize: "12px", color: "#1a1a1a", lineHeight: 1.5 }}
+                style={{ fontSize: "12px", color: "#1a1a1a", lineHeight: 1.35 }}
               >
                 {project.github && (
                   <a
@@ -67,11 +72,12 @@ const ProjectsBlock = ({ projects, theme }) => {
             <p
               style={{
                 fontStyle: "italic",
-                color: "#666666",
-                fontSize: "12px",
-                marginBottom: "4px",
-                marginTop: "2px",
-                lineHeight: 1.5,
+                color: "#202020",
+                fontWeight: 600,
+                fontSize: "11px",
+                marginBottom: "5px",
+                marginTop: "3px",
+                lineHeight: 1.35,
               }}
             >
               {Array.isArray(project.techStack)
@@ -85,8 +91,8 @@ const ProjectsBlock = ({ projects, theme }) => {
                 <li
                   key={idx}
                   style={{
-                    marginBottom: "4px",
-                    lineHeight: 1.5,
+                    marginBottom: "3px",
+                    lineHeight: 1.35,
                     fontSize: "12px",
                   }}
                 >

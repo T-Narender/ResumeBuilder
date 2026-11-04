@@ -21,24 +21,38 @@ const envOrigins = (process.env.CORS_ORIGIN || "")
     .map((o) => o.trim())
     .filter(Boolean);
 
+const defaultOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://ai-resumebuilder-git-main-t-narenders-projects.vercel.app",
+    "https://ai-resumebuilder-pi.vercel.app",
+    "https://airesumebuilder-eight.vercel.app",
+];
+
+const allowedOrigins = [...new Set([
+    ...defaultOrigins,
+    ...envOrigins,
+])];
+
 const isAllowedOrigin = (origin) => {
+    if (!origin) return true;
+
     if (allowedOrigins.includes(origin)) {
         return true;
     }
 
-    return /^https:\/\/ai-resumebuilder(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
+    try {
+        const hostname = new URL(origin).hostname;
+        return /(^|\.)vercel\.app$/i.test(hostname)
+            || /(^|\.)render\.com$/i.test(hostname)
+            || /(^|\.)netlify\.app$/i.test(hostname)
+            || /(^|\.)githubpreview\.dev$/i.test(hostname)
+            || /^localhost$/i.test(hostname)
+            || /^127\.0\.0\.1$/i.test(hostname);
+    } catch {
+        return false;
+    }
 };
-
-const allowedOrigins = [
-    ...(process.env.NODE_ENV === "production"
-        ? [
-            "https://ai-resumebuilder-git-main-t-narenders-projects.vercel.app", // Vercel preview URL
-            "https://ai-resumebuilder-pi.vercel.app", // current Vercel production URL
-            "https://airesumebuilder-eight.vercel.app", // main prod
-        ]
-        : ["http://localhost:5173", "http://localhost:3000"]),
-    ...envOrigins,
-];
 
 app.use(
     cors({

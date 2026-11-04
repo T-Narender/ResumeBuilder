@@ -83,7 +83,7 @@ const TemplateSix = ({ resumeData = {}, containerWidth }) => {
           </h2>
           {projects.map((proj, i) => (
             <div key={i} className="mb-2">
-              <h3 className="text-sm font-bold">{proj.title}</h3>
+              <h3 className="text-sm font-bold text-black">{proj.title}</h3>
               <div className="text-xs space-y-0.5">
                 {proj.description?.split("\n").map((line, i) => (
                   <p key={i}>{line.trim() && `• ${line.trim()}`}</p>

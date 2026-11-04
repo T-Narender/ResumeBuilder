@@ -6,11 +6,24 @@ import TemplateFour from "./TemplateFour";
 import TemplateFive from "./TemplateFive";
 import ATSTemplate from "./ats/ATSTemplate"; // Import ATSTemplate
 
-const RenderResume = ({ templateId, resumeData, containerWidth, singlePage }) => {
+const RenderResume = ({
+  templateId,
+  resumeData,
+  containerWidth,
+  singlePage,
+  compact = false,
+  previewTheme,
+}) => {
   // If the template ID is one of the new ATS themes, render ATSTemplate
-  const atsThemes = ["minimal", "modern", "classic", "student"];
+  const atsThemes = ["minimal", "modern", "classic", "student", "reference"];
   if (atsThemes.includes(templateId?.toLowerCase())) {
-    return <ATSTemplate resumeData={resumeData} />;
+    return (
+      <ATSTemplate
+        resumeData={resumeData}
+        compact={compact}
+        themeName={previewTheme || templateId}
+      />
+    );
   }
 
   // Fallback to old templates

@@ -467,7 +467,7 @@ export const infoStyles = {
 
   // ProjectInfo
   projectContainer: "mb-5",
-  projectTitle: isPreview => `${isPreview ? 'text-sm' : 'text-base'} font-semibold text-gray-900`,
+  projectTitle: isPreview => `${isPreview ? 'text-sm' : 'text-base'} font-bold text-black`,
   projectDesc: "text-sm text-gray-600 mt-1 leading-relaxed",
   projectLinks: "flex items-center gap-4 font-medium mt-3",
 

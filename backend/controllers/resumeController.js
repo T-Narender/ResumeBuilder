@@ -59,13 +59,8 @@ export const createResume = async (req, res) => {
                     liveDemo: '',
                 },
             ],
-            certifications: [
-                {
-                    title: '',
-                    issuer: '',
-                    year: '',
-                },
-            ],
+            certifications: [],
+            achievements: [],
             languages: [
                 {
                     name: '',
@@ -190,8 +185,8 @@ export const deleteResume = async (req, res) => {
 export const extractResumeText = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ 
-        message: 'No PDF file uploaded' 
+      return res.status(400).json({
+        message: 'No PDF file uploaded'
       });
     }
 
@@ -199,26 +194,26 @@ export const extractResumeText = async (req, res) => {
     const p = new PDFParse(uint8);
     const data = await p.getText();
     const extractedText = data.text ? data.text.trim() : '';
-    
+
     if (!extractedText || extractedText.length < 100) {
-      return res.status(400).json({ 
-        message: 'PDF appears empty or is image-based. Please use a text-based PDF.' 
+      return res.status(400).json({
+        message: 'PDF appears empty or is image-based. Please use a text-based PDF.'
       });
     }
 
     console.log(
-      '[PDF EXTRACT] Text extracted, length:', 
+      '[PDF EXTRACT] Text extracted, length:',
       extractedText.length
     );
 
-    res.status(200).json({ 
-      resumeText: extractedText 
+    res.status(200).json({
+      resumeText: extractedText
     });
 
   } catch (error) {
     console.error('[PDF EXTRACT ERROR]', error.message);
-    res.status(500).json({ 
-      message: 'Failed to extract PDF text' 
+    res.status(500).json({
+      message: 'Failed to extract PDF text'
     });
   }
 };

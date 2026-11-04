@@ -17,14 +17,26 @@
 }
 
 /* Make this wrapper at least 210mm × 297mm, but let it shrink if content is shorter */
- .a4-wrapper {
+.a4-wrapper {
     width: 210mm;
     min-height: 297mm;
     background: white;
     box-sizing: border-box;
-    overflow: hidden;
     page-break-after: always;
   }
+
+.a4-preview {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 0 40px;
+  background: white;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.a4-preview-content {
+  min-height: 297mm;
+}
 
 /* Avoid breaking inside headings or custom section titles */
 .a4-wrapper h1,

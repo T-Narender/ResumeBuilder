@@ -39,6 +39,11 @@ import { AdditionalInfoForm } from "./Forms";
 import html2canvas from "html2canvas";
 import "./A4.css";
 import { normalizeResumeData } from "../utils/normalizeResumeData";
+import {
+  A4_HEIGHT_PX,
+  PRINT_MARGIN_PX,
+  useResumePagination,
+} from "../hooks/useResumePagination";
 
 //Resize observer hook
 const useResizeObserver = () => {
@@ -49,6 +54,7 @@ const useResizeObserver = () => {
         const { width, height } = entries[0].contentRect;
         setSize({ width, height });
       });
+
       resizeObserver.observe(node);
     }
   }, []);
@@ -60,6 +66,7 @@ const EditResume = () => {
   const navigate = useNavigate();
   const thumbnailRef = useRef(null);
   const canvasRef = useRef(null); // visible modal preview used by html2canvas
+  const livePreviewRef = useRef(null);
 
   const [openThemeSelector, setOpenThemeSelector] = useState(false);
   const [openPreviewModal, setOpenPreviewModal] = useState(false);
@@ -72,6 +79,8 @@ const EditResume = () => {
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [printStarted, setPrintStarted] = useState(false);
   const [printCompleted, setPrintCompleted] = useState(false);
+  const [compactLayout, setCompactLayout] = useState(false);
+  const [layoutMode, setLayoutMode] = useState("automatic");
 
   const { width: previewWidth, ref: previewContainerRef } = useResizeObserver();
 
@@ -120,13 +129,8 @@ const EditResume = () => {
         liveDemo: "",
       },
     ],
-    certifications: [
-      {
-        title: "",
-        issuer: "",
-        year: "",
-      },
-    ],
+    certifications: [],
+    achievements: [],
     languages: [
       {
         name: "",
@@ -135,6 +139,18 @@ const EditResume = () => {
     ],
     interests: [""],
   });
+
+  const paginationRefreshKey = JSON.stringify([resumeData, compactLayout]);
+  const livePagination = useResumePagination(
+    livePreviewRef,
+    true,
+    paginationRefreshKey,
+  );
+  const modalPagination = useResumePagination(
+    canvasRef,
+    openPreviewModal,
+    paginationRefreshKey,
+  );
 
   // Calculate completion percentage
   const calculateCompletion = () => {
@@ -196,6 +212,13 @@ const EditResume = () => {
       if (cert.year) completedFields++;
     });
 
+    // Achievements
+    resumeData.achievements.forEach((achievement) => {
+      totalFields += 2;
+      if (achievement.title) completedFields++;
+      if (achievement.description || achievement.year) completedFields++;
+    });
+
     // Languages
     resumeData.languages.forEach((lang) => {
       totalFields += 2;
@@ -221,7 +244,10 @@ const EditResume = () => {
   const handleTruePDFExport = async () => {
     setIsDownloading(true);
     try {
-      await generateTruePDF(resumeData?.title || "Resume");
+      await generateTruePDF(
+        resumeData?.title || "Resume",
+        modalPagination.pageCount,
+      );
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
       setOpenPreviewModal(false);
@@ -231,6 +257,83 @@ const EditResume = () => {
       setIsDownloading(false);
     }
   };
+
+  const applyLayoutMode = (mode) => {
+    setLayoutMode(mode);
+    setCompactLayout(mode === "one-page");
+  };
+
+  const PaginationStatus = ({ pagination, showOptimize = false }) => (
+    <div className="mt-3 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span
+          className={
+            pagination.isSinglePage
+              ? "font-semibold text-green-700"
+              : "font-semibold text-amber-700"
+          }
+        >
+          {pagination.isSinglePage ? "✓ 1 Page" : `⚠ ${pagination.pageCount} Pages`}
+          {` · ${pagination.usagePercentage}% of one-page capacity`}
+        </span>
+        {showOptimize && !pagination.isSinglePage && layoutMode !== "one-page" && (
+          <button
+            type="button"
+            onClick={() => applyLayoutMode("one-page")}
+            className="rounded-md bg-amber-100 px-3 py-1 font-medium text-amber-800 hover:bg-amber-200"
+          >
+            Optimize to 1 Page
+          </button>
+        )}
+      </div>
+      {!pagination.isSinglePage && (
+        <p className="mt-1 text-xs text-gray-600">
+          Content exceeds the printable area by {pagination.overflowAmount}px.
+          No content will be removed.
+        </p>
+      )}
+      {pagination.warnings.length > 0 && (
+        <ul className="mt-2 list-disc pl-5 text-xs text-gray-600">
+          {pagination.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+        </ul>
+      )}
+      {import.meta.env.DEV && (
+        <details className="mt-2 text-xs text-gray-500">
+          <summary className="cursor-pointer font-medium">Pagination Debug</summary>
+          <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+            <dt>A4 height</dt><dd>{A4_HEIGHT_PX.toFixed(2)}px</dd>
+            <dt>Printable height</dt><dd>{pagination.printableHeight.toFixed(2)}px</dd>
+            <dt>Content height</dt><dd>{pagination.contentHeight}px</dd>
+            <dt>Page count</dt><dd>{pagination.pageCount}</dd>
+            <dt>Overflow</dt><dd>{pagination.overflowAmount}px</dd>
+            <dt>Usage</dt><dd>{pagination.usagePercentage}%</dd>
+            <dt>Page margin</dt><dd>{PRINT_MARGIN_PX}px</dd>
+            <dt>Compact mode</dt><dd>{compactLayout ? "true" : "false"}</dd>
+          </dl>
+        </details>
+      )}
+    </div>
+  );
+
+  const PageBoundaries = ({ pageCount }) => (
+    <div
+      data-pdf-exclude="true"
+      className="pointer-events-none absolute inset-0 z-10"
+      aria-hidden="true"
+    >
+      {Array.from({ length: pageCount }, (_, index) => (
+        <div
+          key={index}
+          className="absolute left-0 right-0 border-t border-dashed border-blue-300/70"
+          style={{ top: `${20 + index * 1082.52}px` }}
+        >
+          <span className="absolute right-2 -top-5 rounded bg-blue-50 px-1 text-[10px] font-medium text-blue-600">
+            Page {index + 1} end
+          </span>
+        </div>
+      ))}
+    </div>
+  );
 
   // Alternative download method using html2canvas and jsPDF (single-page, improved quality, black text, preserve links)
   const downloadWithCanvas = async () => {
@@ -505,9 +608,11 @@ const EditResume = () => {
         break;
 
       case "skills":
-        resumeData.skills.forEach(({ name, progress }, index) => {
+        resumeData.skills.forEach(({ name, progress, category }, index) => {
           if (!name.trim())
             errors.push(`Skill name is required in skill ${index + 1}`);
+          if (!category?.trim())
+            errors.push(`Skill category is required in skill ${index + 1}`);
           if (progress < 1 || progress > 100)
             errors.push(
               `Skill progress must be between 1 and 100 in skill ${index + 1}`,
@@ -527,14 +632,17 @@ const EditResume = () => {
         break;
 
       case "certifications":
-        resumeData.certifications.forEach(({ title, issuer }, index) => {
+        resumeData.certifications.forEach(
+          ({ title = "", issuer = "", year = "" }, index) => {
+            if (!title.trim() && !issuer.trim() && !year.trim()) return;
           if (!title.trim())
             errors.push(
               `Certification Title is required in certification ${index + 1}`,
             );
           if (!issuer.trim())
             errors.push(`Issuer is required in certification ${index + 1}`);
-        });
+          },
+        );
         break;
 
       case "additionalInfo":
@@ -707,6 +815,7 @@ const EditResume = () => {
           <AdditionalInfoForm
             languages={resumeData.languages}
             interests={resumeData.interests}
+            achievements={resumeData.achievements}
             updateArrayItem={(section, index, key, value) =>
               updateArrayItem(section, index, key, value)
             }
@@ -804,8 +913,19 @@ const EditResume = () => {
           education: resumeInfo?.education || prevState?.education,
           skills: normalizedSkills,
           projects: normalizedProjects,
-          certifications:
-            resumeInfo?.certifications || prevState?.certifications,
+          certifications: Array.isArray(resumeInfo?.certifications)
+            ? resumeInfo.certifications.filter(
+                (cert) => cert?.title?.trim() || cert?.issuer?.trim() || cert?.year?.trim(),
+              )
+            : [],
+          achievements: Array.isArray(resumeInfo?.achievements)
+            ? resumeInfo.achievements.filter(
+                (achievement) =>
+                  achievement?.title?.trim() ||
+                  achievement?.description?.trim() ||
+                  achievement?.year?.trim(),
+              )
+            : [],
           languages: resumeInfo?.languages || prevState?.languages,
           interests: resumeInfo?.interests || prevState?.interests,
         }));
@@ -1051,13 +1171,39 @@ const EditResume = () => {
                 className="preview-container relative flex justify-center"
                 ref={previewContainerRef}
               >
-                <div className={containerStyles.previewInner}>
+                <div
+                  ref={livePreviewRef}
+                  className={`${containerStyles.previewInner} a4-preview`}
+                >
+                  <PageBoundaries pageCount={livePagination.pageCount} />
                   <RenderResume
                     key={`preview-${resumeData?.template?.theme}`}
                     templateId={resumeData?.template?.theme || ""}
                     resumeData={resumeData}
                     containerWidth={previewWidth}
+                    compact={compactLayout}
                   />
+                </div>
+              </div>
+              <PaginationStatus pagination={livePagination} showOptimize />
+              <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
+                <p className="mb-2 font-semibold text-gray-700">Resume Length</p>
+                <div className="flex flex-wrap gap-4 text-gray-700">
+                  {[
+                    ["automatic", "Automatic"],
+                    ["one-page", "One Page"],
+                    ["multiple-pages", "Multiple Pages"],
+                  ].map(([value, label]) => (
+                    <label key={value} className="inline-flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="resume-length"
+                        checked={layoutMode === value}
+                        onChange={() => applyLayoutMode(value)}
+                      />
+                      {label}
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1103,7 +1249,7 @@ const EditResume = () => {
             )
           }
           onActionClick={() => {
-            const atsThemes = ["minimal", "modern", "classic", "student"];
+            const atsThemes = ["minimal", "modern", "classic", "student", "reference"];
             if (
               atsThemes.includes(resumeData?.template?.theme?.toLowerCase())
             ) {
@@ -1126,7 +1272,7 @@ const EditResume = () => {
             <div className="bg-gray-100 rounded-xl p-6 max-h-[80vh] overflow-auto">
               <div
                 ref={canvasRef} // <-- attach ref here so html2canvas captures the visible preview
-                className="bg-white shadow-2xl mx-auto rounded-lg overflow-hidden"
+                className="a4-preview bg-white shadow-2xl mx-auto rounded-lg overflow-hidden"
                 style={{
                   width: "210mm",
                   maxWidth: "210mm",
@@ -1136,6 +1282,7 @@ const EditResume = () => {
                 }}
                 dir="ltr"
               >
+                <PageBoundaries pageCount={modalPagination.pageCount} />
                 <div className="w-full h-full">
                   <RenderResume
                     key={`modal-preview-${resumeData?.template?.theme}`}
@@ -1143,15 +1290,37 @@ const EditResume = () => {
                     resumeData={resumeData}
                     containerWidth={794}
                     singlePage={true}
+                    compact={compactLayout}
                   />
                 </div>
+              </div>
+            </div>
+            <PaginationStatus pagination={modalPagination} showOptimize />
+            <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
+              <p className="mb-2 font-semibold text-gray-700">Resume Length</p>
+              <div className="flex flex-wrap gap-4 text-gray-700">
+                {[
+                  ["automatic", "Automatic"],
+                  ["one-page", "One Page"],
+                  ["multiple-pages", "Multiple Pages"],
+                ].map(([value, label]) => (
+                  <label key={value} className="inline-flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="modal-resume-length"
+                      checked={layoutMode === value}
+                      onChange={() => applyLayoutMode(value)}
+                    />
+                    {label}
+                  </label>
+                ))}
               </div>
             </div>
             {/* Alternative Download Button (now primary download) */}
             <div className="text-center mt-4 no-print">
               <button
                 onClick={() => {
-                  const atsThemes = ["minimal", "modern", "classic", "student"];
+                  const atsThemes = ["minimal", "modern", "classic", "student", "reference"];
                   if (
                     atsThemes.includes(
                       resumeData?.template?.theme?.toLowerCase(),

@@ -247,7 +247,7 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
               <div key={idx} className="space-y-0.5">
                 <div className="flex justify-between items-start">
                   <h3
-                    className="font-semibold text-[12px] text-gray-800 text-left"
+                    className="font-bold text-[13px] text-black text-left"
                     dir="ltr"
                   >
                     {proj.title}
@@ -263,7 +263,7 @@ const TemplateTwo = ({ resumeData = {}, containerWidth }) => {
                 </div>
                 {proj.technologies && (
                   <p
-                    className="bg-gray-100 pb-2 text-[10px] font-mono px-1.5 py-0.5 rounded inline-block text-left"
+                    className="bg-gray-100 pb-2 text-[11px] font-mono px-1.5 py-0.5 rounded inline-block text-left"
                     dir="ltr"
                   >
                     {proj.technologies}

@@ -23,6 +23,7 @@ import BulletInput from "./BulletInput";
 export const AdditionalInfoForm = ({
   languages,
   interests,
+  achievements,
   updateArrayItem,
   addArrayItem,
   removeArrayItem,
@@ -30,6 +31,68 @@ export const AdditionalInfoForm = ({
   return (
     <div className={additionalInfoStyles.container}>
       <h2 className={additionalInfoStyles.heading}>Additional Information</h2>
+
+      <div className="mb-10">
+        <h3 className={additionalInfoStyles.sectionHeading}>
+          <div className={additionalInfoStyles.dotOrange}></div>
+          Achievements <span className="text-sm font-normal text-slate-500">(Optional)</span>
+        </h3>
+        <div className="space-y-4">
+          {achievements?.length === 0 && (
+            <p className="text-sm text-slate-600">
+              Add achievements only if they strengthen your resume.
+            </p>
+          )}
+          {achievements?.map((achievement, index) => (
+            <div key={index} className={additionalInfoStyles.interestItem}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <Input
+                  label="Achievement"
+                  placeholder="e.g. Solved 300+ coding problems"
+                  value={achievement.title || ""}
+                  onChange={({ target }) =>
+                    updateArrayItem("achievements", index, "title", target.value)
+                  }
+                />
+                <Input
+                  label="Year (optional)"
+                  placeholder="2025"
+                  value={achievement.year || ""}
+                  onChange={({ target }) =>
+                    updateArrayItem("achievements", index, "year", target.value)
+                  }
+                />
+                <div className="md:col-span-2">
+                  <Input
+                    label="Details (optional)"
+                    placeholder="Briefly describe the achievement"
+                    value={achievement.description || ""}
+                    onChange={({ target }) =>
+                      updateArrayItem("achievements", index, "description", target.value)
+                    }
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                className={commonStyles.trashButton}
+                onClick={() => removeArrayItem("achievements", index)}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className={`${commonStyles.addButtonBase} ${additionalInfoStyles.addButtonInterest}`}
+            onClick={() =>
+              addArrayItem("achievements", { title: "", description: "", year: "" })
+            }
+          >
+            <Plus size={16} /> Add Achievement
+          </button>
+        </div>
+      </div>
 
       {/* Languages Section */}
       <div className="mb-10">
@@ -138,6 +201,11 @@ export const CertificationInfoForm = ({
     <div className={certificationInfoStyles.container}>
       <h2 className={certificationInfoStyles.heading}>Certifications</h2>
       <div className="space-y-6 mb-6">
+        {certifications.length === 0 && (
+          <p className="text-sm text-slate-600">
+            Certifications are optional. Add one only if you want to include it.
+          </p>
+        )}
         {certifications.map((cert, index) => (
           <div key={index} className={certificationInfoStyles.item}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left w-full">
@@ -607,6 +675,11 @@ export const SkillsInfoForm = ({
     "Programming Languages",
     "Frontend Technologies",
     "Backend Technologies",
+    "Databases",
+    "AI/ML",
+    "GenAI",
+    "Cloud & DevOps",
+    "Tools",
     "Other Tools",
   ];
 
@@ -632,17 +705,37 @@ export const SkillsInfoForm = ({
                 </label>
                 <select
                   className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  value={skill.category || "Programming Languages"}
-                  onChange={({ target }) =>
-                    updateArrayItem(index, "category", target.value)
+                  value={
+                    skillCategories.includes(skill.category)
+                      ? skill.category
+                      : "__custom__"
                   }
+                  onChange={({ target }) => {
+                    if (target.value !== "__custom__") {
+                      updateArrayItem(index, "category", target.value);
+                    } else {
+                      updateArrayItem(index, "category", "");
+                    }
+                  }}
                 >
                   {skillCategories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
                   ))}
+                  <option value="__custom__">Custom category...</option>
                 </select>
+                {(!skillCategories.includes(skill.category) ||
+                  skill.category === "") && (
+                  <Input
+                    label=""
+                    placeholder="e.g. Cybersecurity"
+                    value={skill.category || ""}
+                    onChange={({ target }) =>
+                      updateArrayItem(index, "category", target.value)
+                    }
+                  />
+                )}
               </div>
 
               <div>

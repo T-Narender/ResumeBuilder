@@ -1,7 +1,7 @@
 import React from "react";
 
 const HeaderBlock = ({ fullName, designation, contactInfo, theme }) => {
-  const { email, phone, linkedin, github, location } = contactInfo || {};
+  const { email, phone, linkedin, github, website, location } = contactInfo || {};
 
   const displayLocation = location?.trim() || "";
 
@@ -14,13 +14,15 @@ const HeaderBlock = ({ fullName, designation, contactInfo, theme }) => {
     contactParts.push({ key: "linkedin", label: "LinkedIn", href: linkedin });
   if (github)
     contactParts.push({ key: "github", label: "GitHub", href: github });
+  if (website)
+    contactParts.push({ key: "website", label: "Portfolio", href: website });
 
   return (
     <header
       style={{
         fontFamily: "Arial, Helvetica, sans-serif",
         textAlign: "center",
-        marginBottom: "20px",
+        marginBottom: "10px",
         color: "#1a1a1a",
       }}
     >
@@ -32,8 +34,8 @@ const HeaderBlock = ({ fullName, designation, contactInfo, theme }) => {
           fontWeight: 800,
           margin: 0,
           letterSpacing: "0.05em",
-          marginBottom: "6px",
-          lineHeight: 1.5,
+          marginBottom: "3px",
+          lineHeight: 1.2,
         }}
       >
         {fullName}
@@ -43,8 +45,8 @@ const HeaderBlock = ({ fullName, designation, contactInfo, theme }) => {
           style={{
             fontSize: "12px",
             color: "#555",
-            marginBottom: "6px",
-            lineHeight: 1.5,
+            marginBottom: "3px",
+            lineHeight: 1.3,
           }}
         >
           {displayLocation}
@@ -54,12 +56,12 @@ const HeaderBlock = ({ fullName, designation, contactInfo, theme }) => {
           style={{
             fontSize: "12px",
             color: "#1a1a1a",
-            margin: "0 0 12px 0",
+            margin: "0",
             display: "flex",
             justifyContent: "center",
             gap: "10px",
             flexWrap: "wrap",
-            lineHeight: 1.5,
+            lineHeight: 1.3,
           }}
         >
         {contactParts.map((part, index) => (
@@ -72,7 +74,7 @@ const HeaderBlock = ({ fullName, designation, contactInfo, theme }) => {
               }
               style={{
                 fontSize: "12px",
-                lineHeight: 1.5,
+                lineHeight: 1.3,
                 color: "#1a1a1a",
                 textDecoration: "none",
                 whiteSpace: "nowrap",
@@ -86,13 +88,6 @@ const HeaderBlock = ({ fullName, designation, contactInfo, theme }) => {
           </React.Fragment>
         ))}
       </div>
-      <hr
-        style={{
-          border: "none",
-          borderTop: "1px solid #ccc",
-          margin: "12px 0 0 0",
-        }}
-      />
     </header>
   );
 };

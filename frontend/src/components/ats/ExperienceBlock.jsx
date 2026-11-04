@@ -12,7 +12,7 @@ const ExperienceBlock = ({ experience, theme }) => {
       <SectionHeader title="Experience" />
       <div>
         {validExp.map((exp, index) => (
-          <div key={index} style={{ marginBottom: "14px" }}>
+          <div key={index} style={{ marginBottom: "9px" }}>
             <div
               style={{
                 display: "flex",
@@ -20,10 +20,10 @@ const ExperienceBlock = ({ experience, theme }) => {
                 alignItems: "baseline",
               }}
             >
-              <div style={{ fontSize: "13px", fontWeight: 600, lineHeight: 1.5 }}>
+              <div style={{ fontSize: "13px", fontWeight: 600, lineHeight: 1.35 }}>
                 {exp.role}
               </div>
-              <div style={{ fontSize: "12px", color: "#666", lineHeight: 1.5 }}>
+              <div style={{ fontSize: "12px", color: "#666", lineHeight: 1.35 }}>
                 {exp.startDate} {exp.endDate ? `– ${exp.endDate}` : ""}
               </div>
             </div>
@@ -33,7 +33,7 @@ const ExperienceBlock = ({ experience, theme }) => {
                   fontSize: "12px",
                   color: "#444",
                   marginBottom: "4px",
-                  lineHeight: 1.5,
+                  lineHeight: 1.35,
                 }}
               >
                 {exp.company}
@@ -48,8 +48,8 @@ const ExperienceBlock = ({ experience, theme }) => {
                     <li
                       key={idx}
                       style={{
-                        marginBottom: "4px",
-                        lineHeight: 1.5,
+                        marginBottom: "3px",
+                        lineHeight: 1.35,
                         fontSize: "12px",
                       }}
                     >

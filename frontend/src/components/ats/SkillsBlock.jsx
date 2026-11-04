@@ -43,29 +43,20 @@ const SkillsBlock = ({ skills, theme }) => {
         {categoryEntries.map(([category, items]) => {
           if (!items || items.length === 0) return null;
           const values = Array.isArray(items) ? items.join(", ") : items;
-          const shouldBold = [
-            "programming languages",
-            "frontend technologies",
-            "backend technologies"
-          ].some(val => category.toLowerCase().includes(val));
-
           return (
             <div
               key={category}
               style={{
-                marginBottom: "4px",
+                marginBottom: "2px",
                 fontSize: "12px",
-                lineHeight: 1.5,
+                lineHeight: 1.35,
                 color: "#1a1a1a",
               }}
             >
-              {shouldBold ? (
-                <>
-                  <strong style={{ fontWeight: 700 }}>{category}:</strong> {values}
-                </>
-              ) : (
-                `${category}: ${values}`
-              )}
+              <strong style={{ color: "#111111", fontWeight: 700 }}>
+                {category}:
+              </strong>{" "}
+              {values}
             </div>
           );
         })}
