@@ -3,6 +3,9 @@ import Resume from '../models/resumeModel.js';
 import SkillGapAnalysis from '../models/skillGapAnalysisModel.js';
 import InterviewSession from '../models/interviewSessionModel.js';
 import { generateContent } from '../utils/aiProvider.js';
+import { analyzeSkillGapLocally } from '../services/skillGapService.js';
+import { generateInterviewQuestionsLocally } from '../services/interviewQuestionService.js';
+import { evaluateInterviewLocally } from '../services/interviewEvaluationService.js';
 
 export const generateContentController = async (req, res) => {
     try {
@@ -125,51 +128,11 @@ export const analyzeSkillGap = async (req, res) => {
       })
     }
 
-    // AI prompt - same for both flows
-    const prompt = `You are a career coach and skills expert. Analyze the gap between the candidate's current skills and the target job requirements. Return ONLY valid JSON (no markdown wrapping):
-{
-  "matchPercentage": <0-100>,
-  "hasSkills": ["..."],
-  "missingSkills": [{ 
-    "skill": "...", 
-    "importance": "...", 
-    "learningTime": "...", 
-    "difficulty": "beginner|intermediate|advanced"
-  }],
-  "partialSkills": [{ 
-    "skill": "...", 
-    "gap": "..." 
-  }],
-  "roadmap": [{ 
-    "week": "Week 1-2", 
-    "focus": "...", 
-    "resources": [{ 
-      "name": "...", 
-      "url": "...", 
-      "type": "course|book|project" 
-    }], 
-    "dailyHours": <number> 
-  }],
-  "resumeSuggestions": [{ 
-    "section": "skills|experience|summary", 
-    "suggestion": "..." 
-  }]
-}
-
-Full resume context: ${resumeContent}
-Target job description: ${jobDescription}`
-
-    const text = await generateContent(prompt, regenerate)
-
-    let jsonStr = text
-    if (text.includes("```json")) {
-      jsonStr = text.split("```json")[1]
-        .split("```")[0].trim()
-    } else if (text.includes("```")) {
-      jsonStr = text.split("```")[1]
-        .split("```")[0].trim()
-    }
-    const parsedJson = JSON.parse(jsonStr)
+    // Skill matching is deterministic and does not require an external AI call.
+    const parsedJson = analyzeSkillGapLocally({
+      resumeText: resumeContent,
+      jobDescription
+    })
 
     // Save analysis only for existing users
     if (resumeIdForCache && userId) {
@@ -217,7 +180,8 @@ export const startInterview = async (req, res) => {
       role,
       experience,
       interviewLength,
-      regenerate = false 
+      regenerate = false,
+      generationMode = 'hybrid'
     } = req.body;
 
     if (!resumeId && !resumeText) {
@@ -270,6 +234,71 @@ export const startInterview = async (req, res) => {
         length = 10;
         mix = "4 behavioural, 4 technical based on their skills, 2 situational based on their experience";
       }
+    }
+
+    const localInterview = generateInterviewQuestionsLocally({
+      resumeContent,
+      role: roleOrTarget,
+      experience,
+      length,
+      mix: {
+        behavioural: mix.match(/(\d+) behavioural/)?.[1] ? Number(mix.match(/(\d+) behavioural/)[1]) : 3,
+        technical: mix.match(/(\d+) technical/)?.[1] ? Number(mix.match(/(\d+) technical/)[1]) : 3,
+        situational: mix.match(/(\d+) situational/)?.[1] ? Number(mix.match(/(\d+) situational/)[1]) : 2
+      }
+    });
+
+    if (generationMode === 'local') {
+      return res.status(200).json({
+        questions: localInterview.questions,
+        resumeJSON: resumeContent
+      });
+    }
+
+    if (generationMode === 'hybrid' && localInterview.needsAiFallback) {
+      const fallbackCount = Math.max(1, localInterview.questions.filter((question) => !question.contextName && !question.skill).length);
+      const variationSeed = Math.random().toString(36).slice(2, 10);
+      const fallbackPrompt = `You are a resume-aware interviewer. Generate exactly ${fallbackCount} replacement interview question${fallbackCount === 1 ? '' : 's'} for the target role "${roleOrTarget}" at "${experience || 'unspecified'}" level.
+
+Use only evidence explicitly present in this resume text. Prefer named projects, roles, employers, responsibilities, technologies, platforms, campaigns, and measurable outcomes. Do not invent experience. Do not ask generic questions such as "tell me about a difficult problem" without naming a real resume context. Return only a JSON array:
+[{"question":"...","type":"behavioural|technical|situational","hint":"..."}]
+
+Variation seed: ${variationSeed}. Prefer a different valid angle or resume evidence than a previous interview.
+
+Resume text:
+${resumeText || resumeContent}`;
+      const fallbackText = await generateContent(fallbackPrompt, regenerate);
+      let fallbackJson = fallbackText;
+      if (fallbackText.includes("```json")) {
+        fallbackJson = fallbackText.split("```json")[1].split("```")[0].trim();
+      } else if (fallbackText.includes("```")) {
+        fallbackJson = fallbackText.split("```")[1].split("```")[0].trim();
+      }
+      let generatedQuestions = null;
+      try {
+        generatedQuestions = JSON.parse(fallbackJson);
+      } catch (parseError) {
+        console.error('Invalid hybrid interview question response:', parseError.message);
+      }
+      if (Array.isArray(generatedQuestions)) {
+        let fallbackIndex = 0;
+        localInterview.questions = localInterview.questions.map((question) => {
+          if (question.contextName || question.skill || fallbackIndex >= generatedQuestions.length) return question;
+          const generatedQuestion = generatedQuestions[fallbackIndex];
+          fallbackIndex += 1;
+          if (!generatedQuestion || typeof generatedQuestion.question !== 'string' || !generatedQuestion.question.trim()) return question;
+          return {
+            ...question,
+            question: generatedQuestion.question.trim(),
+            type: ['behavioural', 'technical', 'situational'].includes(generatedQuestion.type) ? generatedQuestion.type : question.type,
+            hint: typeof generatedQuestion.hint === 'string' && generatedQuestion.hint.trim() ? generatedQuestion.hint.trim() : question.hint
+          };
+        });
+      }
+      return res.status(200).json({
+        questions: localInterview.questions,
+        resumeJSON: resumeContent
+      });
     }
 
     const prompt = `You are a senior technical interviewer. Based on the resume below and the target role "${roleOrTarget}" with experience level "${experience || 'Not specified'}", generate exactly ${length} interview questions: ${mix}.
@@ -360,7 +389,7 @@ export const saveInterviewSession = async (req, res) => {
 
 export const evaluateSession = async (req, res) => {
   try {
-    const { questions, answers, metadata, regenerate = false } = req.body;
+    const { questions, answers, metadata, regenerate = false, evaluationMode = 'local' } = req.body;
 
     if (!questions || !answers || !Array.isArray(questions) || !Array.isArray(answers) || questions.length === 0 || answers.length === 0) {
       return res.status(400).json({ message: "questions and answers arrays are required and cannot be empty" });
@@ -369,6 +398,21 @@ export const evaluateSession = async (req, res) => {
     const resumeContent = metadata?.resumeJSON || metadata?.resumeText || "Not provided";
     const roleOrTarget = metadata?.role || metadata?.targetRole || "Not specified";
     const experience = metadata?.experience || "Not specified";
+
+    const integrityScoreRaw = typeof metadata?.integrityScore === 'number' ? metadata.integrityScore : 100;
+    const integrityScore = Math.max(0, Math.min(100, integrityScoreRaw));
+    const typingFluencyRaw = typeof metadata?.typingFluency === 'number' ? metadata.typingFluency : 100;
+    const typingFluency = Math.max(0, Math.min(100, typingFluencyRaw));
+
+    if (evaluationMode !== 'ai') {
+      return res.status(200).json(evaluateInterviewLocally({
+        questions,
+        answers,
+        resumeText: resumeContent,
+        integrityScore,
+        typingFluency
+      }));
+    }
 
     const prompt = `You are an expert interview coach. Evaluate the candidate's performance across the entire interview session.
     
@@ -421,12 +465,6 @@ export const evaluateSession = async (req, res) => {
     }
 
     const evaluationResult = JSON.parse(jsonStr);
-
-    const integrityScoreRaw = typeof metadata?.integrityScore === 'number' ? metadata.integrityScore : 100;
-    const integrityScore = Math.max(0, Math.min(100, integrityScoreRaw));
-
-    const typingFluencyRaw = typeof metadata?.typingFluency === 'number' ? metadata.typingFluency : 100;
-    const typingFluency = Math.max(0, Math.min(100, typingFluencyRaw));
 
     const formattedEvaluations = (evaluationResult.evaluations || []).map((ev) => {
       const strengths = ev.strengths || ev.strongPoints || [];

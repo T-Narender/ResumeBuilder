@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { Trophy, RefreshCcw, ArrowRight, ChevronDown, ChevronUp, CheckCircle2, XCircle, Clock, ShieldAlert, FileText, Target, Award, ShieldCheck, Keyboard, Code, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const ScoreCard = ({ title, score, icon: Icon, colorClass }) => (
+const ScoreCard = ({ title, score, icon: Icon, colorClass, unit }) => (
   <div className={`bg-white rounded-xl border p-5 flex flex-col items-center justify-center text-center shadow-sm ${colorClass}`}>
     <div className="mb-3 opacity-80"><Icon size={28} /></div>
     <span className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70">{title}</span>
     <div className="text-3xl font-black">
-      {score !== undefined ? score : '--'}<span className="text-lg opacity-50">{score !== undefined ? (title.includes('Score') ? '/10' : '%') : ''}</span>
+      {score !== undefined ? score : '--'}<span className="text-lg opacity-50">{score !== undefined ? unit : ''}</span>
     </div>
   </div>
 );
@@ -86,11 +86,11 @@ const InterviewSummary = ({ answers, report, integrityMetrics, onPracticeAgain }
       {/* Premium Score Grid */}
       {!isLegacy && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <ScoreCard title="Technical Score" score={report.technicalScore} icon={Code} colorClass={getScoreColorClass(report.technicalScore)} />
-          <ScoreCard title="Communication Score" score={report.communicationScore} icon={Users} colorClass={getScoreColorClass(report.communicationScore)} />
-          <ScoreCard title="Confidence Score" score={report.confidenceScore} icon={Target} colorClass={getScoreColorClass(report.confidenceScore)} />
-          <ScoreCard title="Integrity Score" score={report.integrityScore} icon={ShieldCheck} colorClass={getScoreColorClass(report.integrityScore, true)} />
-          <ScoreCard title="Fluency Score" score={report.typingFluencyScore} icon={Keyboard} colorClass={getScoreColorClass(report.typingFluencyScore, true)} />
+          <ScoreCard title="Technical Score" score={report.technicalScore} unit="/10" icon={Code} colorClass={getScoreColorClass(report.technicalScore)} />
+          <ScoreCard title="Communication Score" score={report.communicationScore} unit="/10" icon={Users} colorClass={getScoreColorClass(report.communicationScore)} />
+          <ScoreCard title="Confidence Score" score={report.confidenceScore} unit="/10" icon={Target} colorClass={getScoreColorClass(report.confidenceScore)} />
+          <ScoreCard title="Integrity Score" score={report.integrityScore} unit="%" icon={ShieldCheck} colorClass={getScoreColorClass(report.integrityScore, true)} />
+          <ScoreCard title="Fluency Score" score={report.typingFluencyScore} unit="%" icon={Keyboard} colorClass={getScoreColorClass(report.typingFluencyScore, true)} />
         </div>
       )}
 
