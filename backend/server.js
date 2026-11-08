@@ -2,6 +2,8 @@ import cors from "cors";
 import 'dotenv/config';
 import express from "express";
 import { connectDB } from "./config/db.js";
+import { connectRedis } from "./config/redis.js";
+import { getMetrics } from "./utils/metrics.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import userRouter from "./routes/userRouter.js";
@@ -72,6 +74,7 @@ app.use(
 );
 // Connect to database
 connectDB();
+connectRedis();
 
 // Middlewares
 app.use(express.json({ limit: '50mb' }));
@@ -100,6 +103,40 @@ app.use(
 app.get('/', (req, res) => {
     res.send('Hello from backend');
 });
+
+if (process.env.NODE_ENV !== 'production') {
+    app.get('/api/metrics', async (req, res) => {
+        const metrics = await getMetrics();
+        const redisCacheLookups = metrics.redisCacheHits + metrics.redisCacheMisses;
+        const redisCacheHitRate = redisCacheLookups
+            ? Number(((metrics.redisCacheHits / redisCacheLookups) * 100).toFixed(2))
+            : 0;
+
+        res.json({
+            redis: {
+                cacheHits: metrics.redisCacheHits,
+                cacheMisses: metrics.redisCacheMisses,
+                errors: metrics.redisErrors
+            },
+            mongodb: {
+                cacheHits: metrics.mongodbCacheHits,
+                cacheMisses: metrics.mongodbCacheMisses
+            },
+            ai: {
+                providerCalls: metrics.providerCalls,
+                geminiCalls: metrics.geminiCalls,
+                groqCalls: metrics.groqCalls
+            },
+            rateLimit: {
+                allowed: metrics.rateLimitAllowed,
+                blocked: metrics.rateLimitBlocked
+            },
+            derived: {
+                redisCacheHitRate
+            }
+        });
+    });
+}
 
 // Global error handling middleware
 app.use((err, req, res, next) => {

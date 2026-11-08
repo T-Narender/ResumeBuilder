@@ -2,6 +2,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import Groq from "groq-sdk";
 import { getFromCache, saveToCache } from "./cache.js";
 import { getDefaultTemplate } from "./defaultTemplates.js";
+import { getRedisCacheKey } from "./cacheKey.js";
+import { getRedisCache, setRedisCache } from "./redisCache.js";
+import { incrementMetric } from "./metrics.js";
 
 /**
  * Calls the Google Gemini API to generate content.
@@ -72,11 +75,19 @@ function getTemplateTypeFromPrompt(prompt) {
  * @returns {Promise<string>} Generated text or fallback template
  */
 export const generateContent = async (prompt, regenerate = false) => {
-  // STEP 1 - Check cache (skip if regenerate=true):
+  const redisKey = getRedisCacheKey(prompt);
+
+  // STEP 1 - Check Redis first (skip normal cache lookup when regenerating):
   if (!regenerate) {
+    const redisCached = await getRedisCache(redisKey);
+    if (redisCached) {
+      return redisCached;
+    }
+
     const cached = await getFromCache(prompt, false);
     if (cached) {
-      console.log("[CACHE HIT] Returning cached response");
+      console.log("[MONGO CACHE] HIT");
+      await setRedisCache(redisKey, cached);
       return cached;
     }
   }
@@ -84,7 +95,10 @@ export const generateContent = async (prompt, regenerate = false) => {
   // STEP 2 - Try Gemini:
   try {
     console.log("[GEMINI] Calling Gemini API...");
+    await incrementMetric("providerCalls");
+    await incrementMetric("geminiCalls");
     const response = await callGemini(prompt);
+    await setRedisCache(redisKey, response);
     await saveToCache(prompt, response);
     return response;
   } catch (geminiError) {
@@ -95,7 +109,10 @@ export const generateContent = async (prompt, regenerate = false) => {
   // STEP 3 - Try Groq:
   try {
     console.log("[GROQ] Calling Groq API...");
+    await incrementMetric("providerCalls");
+    await incrementMetric("groqCalls");
     const response = await callGroq(prompt);
+    await setRedisCache(redisKey, response);
     await saveToCache(prompt, response);
     return response;
   } catch (groqError) {

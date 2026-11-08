@@ -1,5 +1,6 @@
 import Cache from "../models/Cache.js";
 import crypto from "crypto";
+import { incrementMetric } from "./metrics.js";
 
 /**
  * Hashes a prompt using MD5.
@@ -55,12 +56,14 @@ export const getFromCache = async (prompt, regenerate = false) => {
 
     if (!doc || !doc.responses || doc.responses.length === 0) {
       console.log("[CACHE MISS] No cache found for prompt");
+      await incrementMetric("mongodbCacheMisses");
       return null;
     }
 
     if (!regenerate) {
       // Normal generate mode: return the first variation
       console.log("[CACHE HIT] Returning cached response");
+      await incrementMetric("mongodbCacheHits");
       doc.useCount += 1;
       await doc.save();
       return doc.responses[0];
@@ -68,6 +71,7 @@ export const getFromCache = async (prompt, regenerate = false) => {
       // Regenerate mode: return a random variation excluding responses[0] if possible
       if (doc.responses.length > 1) {
         console.log("[CACHE HIT] Returning cached response");
+        await incrementMetric("mongodbCacheHits");
         const variations = doc.responses.slice(1);
         const randomIndex = Math.floor(Math.random() * variations.length);
         const chosen = variations[randomIndex];
@@ -78,6 +82,7 @@ export const getFromCache = async (prompt, regenerate = false) => {
       } else {
         // Only 1 variation exists: force fresh API call
         console.log("[CACHE MISS] No cache found for prompt");
+        await incrementMetric("mongodbCacheMisses");
         return null;
       }
     }
