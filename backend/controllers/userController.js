@@ -33,6 +33,8 @@ export const registerUser = async (req, res) => {
             password: hashedPassword,
         });
         // await user.save();
+        console.log("REGISTERED USER ID:", user._id);
+        console.log("USER COLLECTION:", User.collection.name);
 
         res.status(201).json({
             user: {
